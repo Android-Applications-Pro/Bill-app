@@ -168,7 +168,13 @@ fun MainScreen(
                         }
                     )
                 }
-
+                composable("edit_detail_screen/{date}/{amount}/{note}") { backStackEntry ->
+                    val date = backStackEntry.arguments?.getString("date") ?: ""
+                    val amount = backStackEntry.arguments?.getString("amount")?.toFloatOrNull() ?: 0f
+                    val note = backStackEntry.arguments?.getString("note") ?: ""
+                    val record = FinanceRecord(date, amount, note)
+                    EditDetailScreen(navController = navController, record = record)
+                }
                 composable("groupDetail/{groupId}") { backStackEntry ->
                     val groupId = backStackEntry.arguments?.getString("groupId")
                     groupId?.let {

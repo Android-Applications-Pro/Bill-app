@@ -1,7 +1,9 @@
 package com.example.billapp
 
 import android.graphics.Paint
+import android.net.Uri
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -24,9 +27,9 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 data class FinanceRecord(
-    val date: String,   // 记录的日期
-    val amount: Float,  // 记录的金额（正值代表收入，负值代表支出）
-    val note: String    // 记录的备注
+    val date: String,   // 記錄的日期
+    val amount: Float,  // 記錄的金額（正值代表收入，負值代表支出）
+    val note: String    // 記錄的備註
 )
 
 @Composable
@@ -37,27 +40,27 @@ fun PersonalUIScreen(
     var year by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
     var month by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
 
-    // 模拟三个月的收入与支出数据
+    // 模擬三個月的收入與支出數據
     val financeData = mapOf(
         Pair(2024, 5) to listOf(
-            FinanceRecord("2024-05-01", -200f, "买衣服"),
-            FinanceRecord("2024-05-03", -50f, "买咖啡"),
-            FinanceRecord("2024-05-10", 5000f, "工资"),
-            FinanceRecord("2024-05-15", -300f, "买鞋"),
-            FinanceRecord("2024-05-20", -100f, "超市购物")
+            FinanceRecord("2024-05-01", -200f, "買衣服"),
+            FinanceRecord("2024-05-03", -50f, "買咖啡"),
+            FinanceRecord("2024-05-10", 5000f, "工資"),
+            FinanceRecord("2024-05-15", -300f, "買鞋"),
+            FinanceRecord("2024-05-20", -100f, "超市購物")
         ),
         Pair(2024, 6) to listOf(
-            FinanceRecord("2024-06-01", 5500f, "工资"),
-            FinanceRecord("2024-06-05", -150f, "餐厅吃饭"),
-            FinanceRecord("2024-06-10", -200f, "电影院"),
-            FinanceRecord("2024-06-20", -300f, "买书"),
+            FinanceRecord("2024-06-01", 5500f, "工資"),
+            FinanceRecord("2024-06-05", -150f, "餐廳吃飯"),
+            FinanceRecord("2024-06-10", -200f, "電影院"),
+            FinanceRecord("2024-06-20", -300f, "買書"),
             FinanceRecord("2024-06-25", -250f, "旅行")
         ),
         Pair(2024, 7) to listOf(
-            FinanceRecord("2024-07-01", 5200f, "工资"),
+            FinanceRecord("2024-07-01", 5200f, "工資"),
             FinanceRecord("2024-07-05", -100f, "健身房"),
-            FinanceRecord("2024-07-12", -200f, "朋友聚会"),
-            FinanceRecord("2024-07-15", -150f, "买礼物"),
+            FinanceRecord("2024-07-12", -200f, "朋友聚會"),
+            FinanceRecord("2024-07-15", -150f, "買禮物"),
             FinanceRecord("2024-07-20", -300f, "家居用品")
         )
     )
@@ -66,17 +69,17 @@ fun PersonalUIScreen(
     var records by remember { mutableStateOf(financeData[Pair(year, month)] ?: emptyList()) }
     var filteredRecords by remember { mutableStateOf(records) }
 
-    // 根据选中的类型过滤记录
+    // 根據選中的類型過濾記錄
     fun filterRecords() {
         filteredRecords = when (selectedChart) {
             "支出" -> records.filter { it.amount < 0 }
             "收入" -> records.filter { it.amount > 0 }
-            "结余" -> records
+            "結餘" -> records
             else -> records
         }
     }
 
-    // 更新到下一个月或上一个月
+    // 更新到下一個月或上一個月
     fun updateMonth(increment: Int) {
         val calendar = Calendar.getInstance()
         calendar.set(year, month - 1, 1)
@@ -84,18 +87,18 @@ fun PersonalUIScreen(
         year = calendar.get(Calendar.YEAR)
         month = calendar.get(Calendar.MONTH) + 1
 
-        // 更新数据
+        // 更新數據
         records = financeData[Pair(year, month)] ?: emptyList()
-        filterRecords()  // 过滤记录
+        filterRecords()  // 過濾記錄
     }
 
-    // 切换数据类型（支出、收入或结余）
+    // 切換數據類型（支出、收入或結餘）
     fun switchData(type: String) {
         selectedChart = type
         filterRecords()
     }
 
-    // 获取显示金额
+    // 獲取顯示金額
     fun getDisplayAmount(): Float {
         return filteredRecords.sumOf { it.amount.toDouble() }.toFloat()
     }
@@ -105,7 +108,7 @@ fun PersonalUIScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // 显示年月的Row
+        // 顯示年月的 Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,20 +119,21 @@ fun PersonalUIScreen(
             IconButton(onClick = { updateMonth(-1) }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "上一个月"
+                    contentDescription = "上一個月"
                 )
             }
 
             Text(
                 text = "${year}年${month}月",
                 fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
 
             IconButton(onClick = { updateMonth(1) }) {
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "下一个月"
+                    contentDescription = "下一個月"
                 )
             }
         }
@@ -148,15 +152,16 @@ fun PersonalUIScreen(
                 Text(text = "月收入")
             }
 
-            Button(onClick = { switchData("结余") }) {
-                Text(text = "月结余")
+            Button(onClick = { switchData("結餘") }) {
+                Text(text = "月結餘")
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "当前金额: ${getDisplayAmount()}",
-            fontSize = 20.sp
+            text = "當前金額: ${getDisplayAmount()}",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -183,13 +188,19 @@ fun PersonalUIScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(text = "收入和支出详情", fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
+            Text(text = "收入和支出詳情", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
 
             filteredRecords.forEach { record ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(8.dp)
+                        .clickable {
+                            navController.navigate(
+                                "edit_detail_screen/${record.date}/${record.amount}/${Uri.encode(record.note)}"
+                            )
+
+                        },
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = record.date, modifier = Modifier.weight(1f))
