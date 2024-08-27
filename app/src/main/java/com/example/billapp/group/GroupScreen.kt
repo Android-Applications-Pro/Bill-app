@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -58,6 +59,10 @@ fun GroupScreen(
     navController: NavController,
     viewModel: MainViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.loadUserGroups()
+        viewModel.reloadUserData()
+    }
     val groups by viewModel.userGroups.collectAsState()
 
     Scaffold(
@@ -99,23 +104,6 @@ fun GroupScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = { navController.navigate("addItemScreen") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(text = "新增群組", fontSize = 18.sp)
-            }
-
-            Button(onClick = { navController.navigate("Group_Invite") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text(text = "test", fontSize = 18.sp)
-            }
-
             // Group list
             GroupList(
                 groupItems = groups,
@@ -127,3 +115,12 @@ fun GroupScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun GroupScreenPreview() {
+    val navController = rememberNavController()
+    val viewModel = MainViewModel()
+    GroupScreen(navController, viewModel)
+}
+

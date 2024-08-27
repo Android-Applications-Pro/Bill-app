@@ -5,9 +5,10 @@ import android.os.Parcelable
 import com.google.firebase.Timestamp
 
 data class GroupTransaction(
+    val id: String = "",                      // 交易ID
     val payer: List<String> = emptyList(),  // 付錢的人 (userId 列表)
     val divider: List<String> = emptyList(),  // 分錢的人 (userId 列表)
-    val shareMethod: String = "",            // 分錢方法
+    val shareMethod: String = "",            // 分錢方法(均分、比例、份數、自訂)
     val type: String = "",                   // 交易類型 (支出, 收入)
     val amount: Double = 0.0,                // 交易金額
     val date: Timestamp? = null,             // 交易日期
@@ -15,6 +16,7 @@ data class GroupTransaction(
     val updatedAt: Timestamp? = null         // 記錄更新的時間戳
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
         parcel.createStringArrayList() ?: emptyList(),
         parcel.createStringArrayList() ?: emptyList(),
         parcel.readString() ?: "",
@@ -26,6 +28,7 @@ data class GroupTransaction(
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(id)
         parcel.writeStringList(payer)
         parcel.writeStringList(divider)
         parcel.writeString(shareMethod)

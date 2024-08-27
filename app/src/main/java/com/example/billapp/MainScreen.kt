@@ -13,15 +13,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.billapp.group.AddInvitationScreen
 import com.example.billapp.group.CreateGroup
+import com.example.billapp.group.GroupInviteLinkScreen
 import com.example.billapp.group.GroupScreen
 import com.example.billapp.group.GroupSettingScreen
 import com.example.billapp.models.User
+import com.example.billapp.personal.EditTransactionDetailScreen
+import com.example.billapp.personal.PersonalUIScreen
+import com.example.billapp.setting.AboutScreen
+import com.example.billapp.setting.ContactUsScreen
 import com.example.billapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -108,7 +115,7 @@ fun MainScreen(
                     )
                 }
                 composable("add") {
-                    ItemAdd(
+                    PersonalTest(
                         navController = navController,
                         viewModel = viewModel,
                     )
@@ -144,12 +151,26 @@ fun MainScreen(
                 composable("Join_Group"){
                     AddInvitationScreen(navController = navController, viewModel = viewModel)
                 }
-                composable("Group_Invite"){
-                    GroupInviteLinkScreen("test",navController = navController)
+                composable(
+                    route = "Group_Invite/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+                ) { navBackStackEntry ->
+                    val groupId = navBackStackEntry.arguments?.getString("groupId")
+                    groupId?.let {
+                        GroupInviteLinkScreen(groupId = it, navController = navController)
+                    }
                 }
-                composable("addItemScreen") {
-                    AddItemScreen(navController = navController, onAddItem = { _, _ -> })
+
+                composable("editTransaction/{transactionId}") { backStackEntry ->
+                    val transactionId = backStackEntry.arguments?.getString("transactionId")
+                    transactionId?.let {
+                        EditTransactionDetailScreen(
+                            navController = navController,
+                            transactionId = it
+                        )
+                    }
                 }
+
                 composable("qrCodeScanner") {
                     QRCodeScannerScreen(
                         onScanResult = { result ->
@@ -161,13 +182,7 @@ fun MainScreen(
                         }
                     )
                 }
-                composable("edit_detail_screen/{date}/{amount}/{note}") { backStackEntry ->
-                    val date = backStackEntry.arguments?.getString("date") ?: ""
-                    val amount = backStackEntry.arguments?.getString("amount")?.toFloatOrNull() ?: 0f
-                    val note = backStackEntry.arguments?.getString("note") ?: ""
-                    val record = FinanceRecord(date, amount, note)
-                    EditDetailScreen(navController = navController, record = record)
-                }
+
                 composable("groupDetail/{groupId}") { backStackEntry ->
                     val groupId = backStackEntry.arguments?.getString("groupId")
                     groupId?.let {
@@ -177,6 +192,17 @@ fun MainScreen(
                             navController = navController
                         )
                     }
+                }
+                composable(
+                    route = "groupTest/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+                    GroupTest(navController, viewModel, groupId)
+                }
+                composable("memberListScreen/{groupId}") { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+                    MemberListScreen(navController, viewModel, groupId)
                 }
             }
         }

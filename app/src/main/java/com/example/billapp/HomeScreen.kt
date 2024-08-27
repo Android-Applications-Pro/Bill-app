@@ -5,6 +5,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,12 +30,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.billapp.group.GroupList
+import com.example.billapp.models.Group
 import com.example.billapp.models.User
 import com.example.billapp.models.GroupTransaction
 import com.example.billapp.viewModel.MainViewModel
@@ -134,7 +139,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
             Text(
-                text = "群組",
+                text = "近期群組",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -144,15 +149,75 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Group list
-            GroupList(
-                groupItems = groups,
-                onGroupClick = { groupId ->
-                    navController.navigate("groupDetail/$groupId")
-                },
-                navController
+            // 顯示時間最近的 4 個 Group，並利用 4 宮格顯示
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.height(320.dp)  // Adjust the height as needed
+            ) {
+                items(4) { index ->
+                    if (index < groups.size) {
+                        GroupItem(group = groups[index], onItemClick = {
+                            navController.navigate("groupDetail/${groups[index].id}")
+                        })
+                    } else {
+                        EmptyGroupSlot()
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+// 只用於主頁
+@Composable
+fun GroupItem(group: Group, onItemClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .clickable(onClick = onItemClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AsyncImage(
+                model = group.image,
+                contentDescription = "Group Image",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = group.name,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+@Composable
+fun EmptyGroupSlot() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        // 空的內容，只顯示背景色
     }
 }
 
@@ -167,132 +232,19 @@ fun HomeScreenPreview() {
     // HomeScreen(navController = navController, onOpenDrawer = {})
 }
 
-
-@Composable
-fun PieChart(income: Float, expense: Float, balance: Float, total: Float) {
-    val incomeAngle = (income / total) * 360f
-    val expenseAngle = (expense / total) * 360f
-
-    Box(contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        ) {
-            Text(
-                text = "收入: $income",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp)
-            )
-            Text(
-                text = "支出: $expense",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = 16.dp, start = 16.dp)
-            )
-            Canvas(modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.Center)
-            ) {
-                withTransform({
-                    rotate(270f)
-                }) {
-                    drawArc(
-                        color = Color.Green,
-                        startAngle = 0f,
-                        sweepAngle = incomeAngle,
-                        useCenter = false,
-                        style = Stroke(width = 20.dp.toPx())
-                    )
-                    drawArc(
-                        color = Color.Red,
-                        startAngle = incomeAngle,
-                        sweepAngle = expenseAngle,
-                        useCenter = false,
-                        style = Stroke(width = 20.dp.toPx())
-                    )
-                }
-            }
-            Text(
-                text = "結餘: $balance",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    }
-}
 @Preview(showBackground = true)
 @Composable
-fun PieChartPreview() {
-    PieChart(income = 100f, expense = 50f, balance = 50f, total = 150f)
-}
-
-@Composable
-fun TransactionItem(transaction: GroupTransaction) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = "${transaction.amount} 元",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "----->",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-
-        }
-    }
-}
-
-
-@Composable
-fun UserAvatar(user: User) {
-    val avatarResource = if (user.id == "2") {
-        R.drawable.avatar_placeholder_2
-    } else {
-        R.drawable.avatar_placeholder
-    }
-
-    Image(
-        painter = painterResource(id = avatarResource),
-        contentDescription = user.name,
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape),
-        contentScale = ContentScale.Crop
+fun GroupItemPreview(){
+    val group = Group(
+        id = "1",
+        name = "Group 1",
+        image = "https://example.com/image1.jpg",
+        createdBy = "User 1",
     )
+    GroupItem(group = group, onItemClick = {})
 }
-@Preview(showBackground = true)
-@Composable
-fun UserAvatarPreview() {
-    UserAvatar(user = User(id = "1", name = "John Doe"))
-}
+
+
+
 
 

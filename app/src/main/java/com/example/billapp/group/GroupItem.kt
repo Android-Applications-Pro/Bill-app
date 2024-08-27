@@ -36,7 +36,7 @@ import androidx.navigation.NavController
 import com.example.billapp.R
 import com.example.billapp.models.Group
 
-// 顯示在主頁的 Group，會放在底下 GroupList 中
+// 顯示在 Group，會放在底下 GroupList 中
 @Composable
 fun GroupItem(groupName: String, createdBy: String, onClick: () -> Unit) {
     Card(

@@ -4,19 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.google.firebase.Timestamp
 
-enum class TransactionCategory {
-    SHOPPING,         // 購物
-    ENTERTAINMENT,    // 娛樂
-    TRANSPORTATION,   // 交通
-    EDUCATION,        // 學習
-    LIVING,           // 生活
-    MEDICAL,          // 醫療
-    INVESTMENT,       // 投資
-    FOOD,             // 飲食
-    TRAVEL,           // 旅行
-    OTHER             // 其他
-}
-
 data class PersonalTransaction(
     val transactionId: String = "",        // 交易記錄的唯一標識符
     val userId: String = "",               // 關聯的使用者 ID
@@ -24,9 +11,10 @@ data class PersonalTransaction(
     val amount: Double = 0.0,              // 交易金額
     val category: TransactionCategory = TransactionCategory.OTHER, // 交易分類
     val note: String? = null,              // 備註 (可選)
+    val name: String = "",              // 交易名稱 (可選)
     val date: Timestamp? = null,           // 交易日期
     val createdAt: Timestamp? = null,      // 記錄創建的時間戳
-    val updatedAt: Timestamp? = null       // 記錄更新的時間戳
+    val updatedAt: Timestamp? = null,      // 記錄更新的時間戳
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -35,9 +23,11 @@ data class PersonalTransaction(
         parcel.readDouble(),
         TransactionCategory.valueOf(parcel.readString()!!),  // 讀取 enum
         parcel.readString(),
+        parcel.readString()!!,
         parcel.readParcelable(Timestamp::class.java.classLoader),  // 讀取 Timestamp
         parcel.readParcelable(Timestamp::class.java.classLoader),
-        parcel.readParcelable(Timestamp::class.java.classLoader)
+        parcel.readParcelable(Timestamp::class.java.classLoader),
+
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -47,6 +37,7 @@ data class PersonalTransaction(
         parcel.writeDouble(amount)
         parcel.writeString(category.name)  // 寫入 enum 的 name
         parcel.writeString(note)
+        parcel.writeString(name)
         parcel.writeParcelable(date, flags)  // 寫入 Timestamp
         parcel.writeParcelable(createdAt, flags)
         parcel.writeParcelable(updatedAt, flags)
@@ -66,5 +57,3 @@ data class PersonalTransaction(
         }
     }
 }
-
-

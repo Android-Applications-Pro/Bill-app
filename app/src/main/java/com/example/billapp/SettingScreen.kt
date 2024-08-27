@@ -1,5 +1,7 @@
 package com.example.billapp
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +26,7 @@ fun SettingScreen(
     navController: NavController,
     viewModel: MainViewModel,
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,6 +69,24 @@ fun SettingScreen(
             Text(text = "聯絡我們",
                 fontSize = 18.sp,
                 color = Color.Black)
+        }
+        Button(
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/gi6Fyew6qfFyVAn29"))
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .size(height = 60.dp, width = 200.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(Color.LightGray)
+        ) {
+            Text(
+                text = "問題回報",
+                fontSize = 18.sp,
+                color = Color.Black,
+            )
         }
         Button(onClick = {
             navController.navigate("about")

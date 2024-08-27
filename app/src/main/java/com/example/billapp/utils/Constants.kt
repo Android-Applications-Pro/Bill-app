@@ -2,6 +2,8 @@ package com.example.billapp.utils
 
 object Constants {
 
+    val TRANSACTIONS: String = "transactions"
+
     // Firebase Constants
     // This  is used for the collection name for USERS.
     const val USERS: String = "users"
