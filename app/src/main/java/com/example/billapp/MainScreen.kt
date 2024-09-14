@@ -23,6 +23,7 @@ import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.billapp.bonus.CurrencyConverterScreen
 import com.example.billapp.bonus.ExchangeRateTableScreen
+import com.example.billapp.dept_relation.DeptRelationsScreen
 import com.example.billapp.group.AddInvitationScreen
 import com.example.billapp.group.CreateGroup
 import com.example.billapp.group.GroupInviteLinkScreen
@@ -146,6 +147,7 @@ fun MainScreen(
                         requestPermission = requestPermission
                     )
                 }
+
                 composable("CreateGroupScreen") {
                     CreateGroup(navController = navController,viewModel = viewModel, avatarViewModel = avatarViewModel)
                 }
@@ -219,16 +221,27 @@ fun MainScreen(
                     val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
                     GroupTest(navController, viewModel, groupId)
                 }
+
                 composable("memberListScreen/{groupId}") { backStackEntry ->
                     val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
                     MemberListScreen(navController, viewModel, groupId)
                 }
+
 
                 composable("ItemAdd"){
                     ItemAdd(navController, viewModel)
                 }
                 composable("avatar"){
                     AvatarScreen(viewModel = avatarViewModel)
+                }
+
+                composable("deptRelationsScreen/{groupId}") { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+                    DeptRelationsScreen(
+                        viewModel = viewModel,
+                        groupId = groupId,
+                        onBackPress = { navController.popBackStack() }
+                    )
                 }
             }
         }

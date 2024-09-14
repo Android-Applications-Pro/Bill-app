@@ -12,14 +12,19 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 //主要顏色們 Main color
-val HeaderBackgroundColor = Color(0xFFF0A733)
-val MainBackgroundColor = Color(0xFFF2DABD)
-val BoxBackgroundColor = Color(0xFFD9C2A7)
-val ButtonBackgroundColor = Color(0xFFEAC75E)
+val MainBackgroundColor = Color(0xFFE4DFCB)
+val MainCardRedColor = Color(0xFFD4634E)
+val BoxBackgroundColor = Color(0xFFBBB0A2)
+val HightlightWhiteColor = Color(0xFFD6D7D2)
+val ButtonRedColor = Color(0xFFD4634E)
+val ButtonGreenColor = Color(0xFF90A171)
+val ButtonGrayColor = Color(0xFFBCBCBC)
 val BottomBackgroundColor = Color(0xFF8EB7D2)
 val PrimaryFontColor = Color(0xFF404040)
+val SecondFontColor = Color(0xFF737373)
 val PieRedColor = Color(0xFFA95A63)
 val PieGreenColor = Color(0xFF90A171)
+
 
 //灰階
 val White = Color(0xFFFFFFFF)

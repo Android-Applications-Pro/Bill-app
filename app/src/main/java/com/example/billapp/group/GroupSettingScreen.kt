@@ -21,8 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +38,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.billapp.dept_relation.DeptRelationsScreen
 import com.example.billapp.R
+import com.example.billapp.dept_relation.GroupedDeptRelationItem
 import com.example.billapp.viewModel.MainViewModel
 
 @Composable
@@ -43,6 +48,13 @@ fun GroupSettingScreen(
     navController: NavController
 ) {
     val group by viewModel.getGroup(groupId).collectAsState(initial = null)
+    val deptRelations by viewModel.groupIdDeptRelations.collectAsState()
+    val currentUser by viewModel.user.collectAsState()
+    val currentUserId = currentUser?.id ?: ""
+
+    LaunchedEffect(groupId) {
+        viewModel.getGroupDeptRelations(groupId)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -69,18 +81,17 @@ fun GroupSettingScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp), // Reduced padding here
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(2.dp, Color.Gray),
                 backgroundColor = Color.White
             ) {
-                Column(modifier = Modifier.padding(8.dp)) // Reduced padding inside the Card
-                {
+                Column(modifier = Modifier.padding(8.dp)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp), // Reduced padding inside the Row
+                            .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -90,7 +101,7 @@ fun GroupSettingScreen(
                             fontSize = 20.sp,
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(end = 4.dp) // Reduced padding between Text and Button
+                                .padding(end = 4.dp)
                         )
 
                         Button(
@@ -103,7 +114,7 @@ fun GroupSettingScreen(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(start = 4.dp) // Reduced padding between Button and Text
+                                .padding(start = 4.dp)
                                 .fillMaxWidth()
                         ) {
                             Text(
@@ -112,7 +123,41 @@ fun GroupSettingScreen(
                             )
                         }
                     }
-                    DeptRelationsScreen(viewModel = viewModel, groupId = groupId)
+
+                    val relevantDeptRelations = deptRelations.values.flatten()
+                        .filter { it.from == currentUserId || it.to == currentUserId }
+                        .take(2)
+
+                    relevantDeptRelations.forEach { relation ->
+                        var fromName by remember { mutableStateOf("") }
+                        var toName by remember { mutableStateOf("") }
+
+                        LaunchedEffect(relation.from, relation.to) {
+                            fromName = viewModel.getUserName(relation.from)
+                            toName = viewModel.getUserName(relation.to)
+                        }
+
+                        GroupedDeptRelationItem(
+                            viewModel = viewModel,
+                            fromName = fromName,
+                            toName = toName,
+                            totalAmount = relation.amount,
+                            deptRelations = listOf(relation),
+                            groupId = groupId
+                        )
+                    }
+
+                    // Button to view all debt relations
+                    Button(
+                        onClick = {
+                            navController.navigate("deptRelationsScreen/$groupId")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        Text("查看所有債務關係")
+                    }
                 }
             }
 

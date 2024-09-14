@@ -1,5 +1,6 @@
 package com.example.billapp
 
+import java.util.Stack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -53,6 +54,10 @@ import com.example.billapp.viewModel.MainViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.platform.LocalFocusManager
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -229,11 +234,16 @@ fun ItemAdd(
     var expandedShareMethod by remember { mutableStateOf(false) }
     var expandedDividers by remember { mutableStateOf(false) }
 
+    //by weiweihsu
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // Helper to get a user's name by ID
     val getUserNameById: (String) -> String = { userId ->
         groupMembers.find { it.id == userId }?.name ?: "Unknown"
     }
+
+    val focusManager = LocalFocusManager.current
 
     // Initialize the category to ensure it has a default value
     LaunchedEffect(Unit) {
@@ -244,26 +254,37 @@ fun ItemAdd(
         viewModel.setCategory(TransactionCategory.OTHER)
     }
 
+    // 初始化時根據amount是否為整數決定顯示的內容
+    LaunchedEffect(amount) {
+        amountInput = if (amount % 1.0 == 0.0) {
+            amount.toInt().toString()
+        } else {
+            amount.toString()
+        }
+    }
 
-    BottomSheetScaffold(
-        scaffoldState = bottomSheetScaffoldState,
-        sheetContent = {},
-        sheetPeekHeight = 0.dp,
 
-    ) {
+    Scaffold(modifier = Modifier
+        .pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        },
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFD9C9BA))  // 背景顏色
+                .padding(innerPadding)
                 .padding(top = 23.dp, start = 16.dp, end = 16.dp, bottom = 7.dp)
-                .clickable {
-                    if (isBottomSheetVisible) {
-                        coroutineScope.launch {
-                            isBottomSheetVisible = false
-                            toggleKeyboard = false
-                        }
-                    }
-                }
+//                .clickable {
+//                    if (isBottomSheetVisible) {
+//                        coroutineScope.launch {
+//                            isBottomSheetVisible = false
+//                            toggleKeyboard = false
+//                        }
+//                    }
+//                }
         ) {
             // 主要程式碼
             // (個人/群组)
@@ -368,6 +389,12 @@ fun ItemAdd(
                         amountInput = it
                         it.toDoubleOrNull()?.let { validAmount ->
                             viewModel.setAmount(validAmount)
+                            // 根據是否為整數來決定顯示的內容
+                            amountInput = if (validAmount % 1.0 == 0.0) {
+                                validAmount.toInt().toString()
+                            } else {
+                                validAmount.toString()
+                            }
                         }
                     },
                     label = "金額",
@@ -378,10 +405,11 @@ fun ItemAdd(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .clickable {toggleKeyboard = !toggleKeyboard
-                            isBottomSheetVisible = toggleKeyboard }
+                        .clickable {
+                            toggleKeyboard = !toggleKeyboard
+                            isBottomSheetVisible = toggleKeyboard
+                        }
                 )
-
             }
 
             AnimatedVisibility(visible = isBottomSheetVisible) {
@@ -560,32 +588,108 @@ fun ItemAdd(
 
             // 完成按鈕
             if(personalOrGroup == "群組"){
-                Button(
-                    onClick = {
-                    },
+                Row(
                     modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text("完成")
+                    Button(
+                        onClick = {
+                            errorMessage = "確定要清空"
+                            showErrorDialog = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.padding(end = 8.dp) // 與完成按鈕間距
+                    ) {
+                        Text("清空")
+                    }
+
+                    Button(
+                        onClick = {
+                        },
+                        enabled = amountInput.isNotBlank() && name.isNotBlank() && amountInput.toDoubleOrNull() != 0.0,
+                        modifier = Modifier
+                    ) {
+                        Text("完成")
+                    }
                 }
             }else{
-                Button(
-                    onClick = {
-                        viewModel.addPersonalTransaction()
-                        amountInput=""
-                        viewModel.setAmount(0.0)
-                        viewModel.setCategory(TransactionCategory.OTHER)
-                        viewModel.setName("")
-                        viewModel.setNote("")
-                        navController.popBackStack()
-                    },
+                Row(
                     modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text("完成")
+                    Button(
+                        onClick = {
+                            // move to alertdialog
+                            errorMessage = "確定要清空"
+                            showErrorDialog = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.padding(end = 8.dp) // 與完成按鈕間距
+                    ) {
+                        Text("清空")
+                    }
+                    Button(
+                        onClick = {
+                            viewModel.addPersonalTransaction()
+                            amountInput = ""
+                            viewModel.setAmount(0.0)
+                            viewModel.setCategory(TransactionCategory.OTHER)
+                            viewModel.setName("")
+                            viewModel.setNote("")
+                            navController.popBackStack()
+                        },
+                        enabled = amountInput.isNotBlank() && name.isNotBlank() && amountInput.toDoubleOrNull() != 0.0,
+                        modifier = Modifier
+                    ) {
+                        Text("完成")
+                    }
                 }
+            }
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    title = { Text(text = "警告") },
+                    text = { Text(text = errorMessage) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showErrorDialog = false
+                                if(personalOrGroup == "群組"){
+                                    amountInput = ""
+                                    viewModel.setAmount(0.0)
+                                    viewModel.setCategory(TransactionCategory.OTHER)
+                                    viewModel.setName("")
+                                    viewModel.setNote("")
+                                }else{
+                                    amountInput = ""
+                                    viewModel.setAmount(0.0)
+                                    viewModel.setCategory(TransactionCategory.OTHER)
+                                    viewModel.setName("")
+                                    viewModel.setNote("")
+                                }
+                            }
+                        ) {
+                            Text("確定")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = { showErrorDialog = false }
+                        ) {
+                            Text("取消")
+                        }
+                    }
+                )
             }
         }
     }
@@ -593,16 +697,52 @@ fun ItemAdd(
 }
 
 
-// 計算函式
-// 簡單版
+// Modified evaluateExpression function
 fun evaluateExpression(expression: String): Double {
-    return try {
-        val result = expression.split("+", "-", "×", "÷")
-            .map { it.trim().toDoubleOrNull() ?: 0.0 }
-            .reduce { acc, value -> acc + value }
-        result
-    } catch (e: Exception) {
-        0.0
+    val operators = Stack<Char>()
+    val values = Stack<Double>()
+
+    var i = 0
+    while (i < expression.length) {
+        when (val ch = expression[i]) {
+            ' ' -> i++
+            in '0'..'9', '.' -> {
+                val sb = StringBuilder()
+                while (i < expression.length && (expression[i] in '0'..'9' || expression[i] == '.')) {
+                    sb.append(expression[i++])
+                }
+                values.push(sb.toString().toDouble())
+            }
+            '+', '-', '×', '÷' -> {
+                while (!operators.isEmpty() && hasPrecedence(ch, operators.peek())) {
+                    values.push(applyOp(operators.pop(), values.pop(), values.pop()))
+                }
+                operators.push(ch)
+                i++
+            }
+            else -> throw IllegalArgumentException("Invalid character in expression")
+        }
     }
+
+    while (!operators.isEmpty()) {
+        values.push(applyOp(operators.pop(), values.pop(), values.pop()))
+    }
+
+    return values.pop()
 }
 
+fun hasPrecedence(op1: Char, op2: Char): Boolean {
+    if (op2 == '(' || op2 == ')') return false
+    if ((op1 == '×' || op1 == '÷') && (op2 == '+' || op2 == '-')) return false
+    return true
+}
+
+fun applyOp(op: Char, b: Double, a: Double): Double {
+    return when (op) {
+        '+' -> a + b
+        '-' -> a - b
+        '×' -> a * b
+        '÷' -> if (b != 0.0) a / b else throw ArithmeticException("Cannot divide by zero")
+        else -> throw IllegalArgumentException("Invalid operator")
+    }
+}

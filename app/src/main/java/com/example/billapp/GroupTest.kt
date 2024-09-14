@@ -1,38 +1,18 @@
 package com.example.billapp
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,7 +21,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.billapp.viewModel.MainViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupTest(
@@ -49,6 +28,11 @@ fun GroupTest(
     viewModel: MainViewModel,
     groupId: String
 ) {
+    // Initialize scaffoldState
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showSnackbar by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     LaunchedEffect(groupId) {
         viewModel.getGroupMembers(groupId)
     }
@@ -63,15 +47,12 @@ fun GroupTest(
     var expandedShareMethod by remember { mutableStateOf(false) }
     var expandedDividers by remember { mutableStateOf(false) }
     var expandedPayers by remember { mutableStateOf(false) }
+    var showSeparateScreen by remember { mutableStateOf(false) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Helper to get a user's name by ID
-    val getUserNameById: (String) -> String = { userId ->
-        groupMembers.find { it.id == userId }?.name ?: "Unknown"
-    }
-
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Group Test") },
@@ -89,7 +70,6 @@ fun GroupTest(
                 .background(Color(0xFFD9C9BA))
                 .padding(innerPadding)
         ) {
-            // Amount Input
             TextField(
                 value = amountInput,
                 onValueChange = {
@@ -111,7 +91,6 @@ fun GroupTest(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Share Method Dropdown
             ExposedDropdownMenuBox(
                 expanded = expandedShareMethod,
                 onExpandedChange = { expandedShareMethod = !expandedShareMethod }
@@ -129,7 +108,7 @@ fun GroupTest(
                     expanded = expandedShareMethod,
                     onDismissRequest = { expandedShareMethod = false }
                 ) {
-                    listOf("均分", "比例", "份數", "自訂").forEach { selectionOption ->
+                    listOf("均分", "比例", "調整", "金額", "份數").forEach { selectionOption ->
                         DropdownMenuItem(
                             text = { Text(selectionOption) },
                             onClick = {
@@ -143,14 +122,13 @@ fun GroupTest(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Dividers Selection (Multiple Selection)
             ExposedDropdownMenuBox(
                 expanded = expandedDividers,
                 onExpandedChange = { expandedDividers = !expandedDividers }
             ) {
                 TextField(
                     readOnly = true,
-                    value = dividers.joinToString(", ") { getUserNameById(it) },
+                    value = dividers.joinToString(", ") { member -> groupMembers.find { it.id == member }?.name ?: "" },
                     onValueChange = { },
                     label = { Text("分帳的人") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDividers) },
@@ -162,27 +140,38 @@ fun GroupTest(
                     onDismissRequest = { expandedDividers = false }
                 ) {
                     groupMembers.forEach { user ->
+                        val isSelected = dividers.contains(user.id)
                         DropdownMenuItem(
-                            text = { Text(user.name) },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = {
+                                            viewModel.toggleDivider(user.id)
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(user.name)
+                                }
+                            },
                             onClick = {
                                 viewModel.toggleDivider(user.id)
-                                // Don't close the dropdown after selecting
                             }
                         )
                     }
                 }
             }
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Payers Selection (Single Selection)
             ExposedDropdownMenuBox(
                 expanded = expandedPayers,
                 onExpandedChange = { expandedPayers = !expandedPayers }
             ) {
                 TextField(
                     readOnly = true,
-                    value = payers.joinToString(", ") { getUserNameById(it) },
+                    value = payers.joinToString(", ") { member -> groupMembers.find { it.id == member }?.name ?: "" },
                     onValueChange = { },
                     label = { Text("付錢的人") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPayers) },
@@ -194,34 +183,95 @@ fun GroupTest(
                     onDismissRequest = { expandedPayers = false }
                 ) {
                     groupMembers.forEach { user ->
+                        val isSelected = payers.contains(user.id)
                         DropdownMenuItem(
-                            text = { Text(user.name) },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = {
+                                            viewModel.togglePayer(user.id)
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(user.name)
+                                }
+                            },
                             onClick = {
                                 viewModel.togglePayer(user.id)
-                                expandedPayers = false // Close dropdown after selection
                             }
                         )
                     }
                 }
             }
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Submit Button
             Button(
                 onClick = {
-                    viewModel.addGroupTransaction(groupId)  // Pass the groupId to the function
-                    navController.popBackStack()
+                    if (amountInput.isNotBlank() && shareMethod.isNotBlank() && dividers.isNotEmpty() && payers.isNotEmpty()) {
+                        showBottomSheet = true
+                    } else {
+                        showSnackbar = true
+                    }
                 },
+                enabled = amountInput.isNotBlank() && shareMethod.isNotBlank() && dividers.isNotEmpty() && payers.isNotEmpty(),
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(16.dp)
             ) {
+                Text("分帳")
+            }
+
+            Button(onClick = {
+                // Trigger viewModel action to complete the transaction
+                viewModel.addGroupTransaction(groupId)
+                viewModel.loadGroupTransactions(groupId)
+                viewModel.loadGroupDeptRelations(groupId)
+                navController.popBackStack()
+            }) {
                 Text("完成")
             }
         }
     }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = rememberModalBottomSheetState(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.8f)
+                    .fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    SeparateBottomSheetContent(
+                        viewModel = viewModel,
+                        groupId = groupId,
+                        amount = amount.toFloat(),
+                        onDismiss = { showBottomSheet = false },
+                        onComplete = {
+                            showBottomSheet = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    if (showSnackbar) {
+        LaunchedEffect(snackbarHostState) {
+            snackbarHostState.showSnackbar("請填寫所有必要的欄位")
+            showSnackbar = false
+        }
+    }
 }
+
 
 
 @Preview(showBackground = true)
@@ -230,4 +280,5 @@ fun GroupTestPreview() {
     val navController = rememberNavController()
     val viewModel = MainViewModel()
     GroupTest(navController, viewModel, "test")
+
 }

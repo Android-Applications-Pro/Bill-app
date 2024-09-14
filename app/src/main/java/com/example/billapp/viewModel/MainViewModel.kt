@@ -97,9 +97,11 @@ class MainViewModel : ViewModel() {
     private val _transaction = MutableStateFlow<PersonalTransaction?>(null)
     val transaction: StateFlow<PersonalTransaction?> = _transaction
 
-    private var _updatetime =MutableStateFlow(Timestamp.now())
+    private var _updatetime = MutableStateFlow(Timestamp.now())
     val updatetime: StateFlow<Timestamp> = _updatetime.asStateFlow()
 
+    private var currentGroup = MutableStateFlow<Group?>(null)
+    val group: StateFlow<Group?> = currentGroup.asStateFlow()
 
     // 不要在這邊宣告firebase
     init {
@@ -173,6 +175,10 @@ class MainViewModel : ViewModel() {
     // Dept Functions //
     fun getDeptRelations(groupId: String): MutableStateFlow<List<DeptRelation>> {
         return _deptRelations
+    }
+
+    suspend fun getUserName(userId: String): String {
+        return FirebaseRepository.getUserName(userId)
     }
 
     // Groups Function //
@@ -454,21 +460,9 @@ class MainViewModel : ViewModel() {
     fun setShareMethod(method: String) {
         _shareMethod.value = method
     }
-
-    fun toggleDivider(userId: String) {
-        _dividers.value = if (_dividers.value.contains(userId)) {
-            _dividers.value - userId
-        } else {
-            _dividers.value + userId
-        }
-    }
-
-    fun togglePayer(userId: String) {
-        _payers.value = if (_payers.value.contains(userId)) {
-            _payers.value - userId
-        } else {
-            _payers.value + userId
-        }
+    // 設定群組交易名稱
+    fun setGroupTransactionName(groupName: String){
+        _groupName.value = groupName
     }
 
     fun getGroupMembers(groupId: String) {
@@ -482,32 +476,205 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    // New state flows for different share methods
+    private val _userPercentages = MutableStateFlow<Map<String, Float>>(emptyMap())
+    private val _userAdjustments = MutableStateFlow<Map<String, Float>>(emptyMap())
+    private val _userExactAmounts = MutableStateFlow<Map<String, Float>>(emptyMap())
+    private val _userShares = MutableStateFlow<Map<String, Int>>(emptyMap())
+
+    val userPercentages: StateFlow<Map<String, Float>> = _userPercentages.asStateFlow()
+    val userAdjustments: StateFlow<Map<String, Float>> = _userAdjustments.asStateFlow()
+    val userExactAmounts: StateFlow<Map<String, Float>> = _userExactAmounts.asStateFlow()
+    val userShares: StateFlow<Map<String, Int>> = _userShares.asStateFlow()
+
+    private val _groupName = MutableStateFlow("")
+    val groupName: StateFlow<String> get() = _groupName
+
     fun addGroupTransaction(groupId: String) {
         viewModelScope.launch {
             try {
-                FirebaseRepository.addGroupTransaction(
-                    groupId,
-                    GroupTransaction(
-                        id = "",
-                        payer = _payers.value,
-                        divider = _dividers.value,
-                        shareMethod = _shareMethod.value,
-                        type = _transactionType.value,
-                        amount = _amount.value,
-                        date = Timestamp.now(),
-                        createdAt = Timestamp.now(),
-                        updatedAt = Timestamp.now()
-                    )
+                val transaction = GroupTransaction(
+                    id = "",
+                    name = _groupName.value,
+                    payer = _payers.value,
+                    divider = _dividers.value,
+                    shareMethod = _shareMethod.value,
+                    type = _transactionType.value,
+                    amount = _amount.value,
+                    date = Timestamp.now(),
+                    createdAt = Timestamp.now(),
+                    updatedAt = Timestamp.now()
                 )
+
+                val deptRelations = when (_shareMethod.value) {
+                    "均分" -> calculateEvenSplitRelations(transaction)
+                    "比例" -> calculateProportionalRelations(transaction, _userPercentages.value)
+                    "調整" -> calculateAdjustableRelations(transaction, _userAdjustments.value)
+                    "金額" -> calculateExactAmountRelations(transaction, _userExactAmounts.value)
+                    "份數" -> calculateSharesRelations(transaction, _userShares.value)
+                    else -> emptyList() // Handle unexpected share method
+                }
+
+                FirebaseRepository.addGroupTransaction(groupId, transaction, deptRelations)
+
                 // Reset fields
                 _amount.value = 0.0
                 _shareMethod.value = ""
                 _dividers.value = emptyList()
                 _payers.value = emptyList()
+                _userPercentages.value = emptyMap()
+                _userAdjustments.value = emptyMap()
+                _userExactAmounts.value = emptyMap()
+                _userShares.value = emptyMap()
             } catch (e: Exception) {
                 Log.e("GroupTransactionAdd", "Error adding group transaction: ${e.message}", e)
             }
         }
+    }
+
+    fun updateGroupName(newName: String) {
+        _groupName.value = newName
+    }
+
+    private fun calculateEvenSplitRelations(transaction: GroupTransaction): List<DeptRelation> {
+        val deptRelations = mutableListOf<DeptRelation>()
+        val amountPerDivider = transaction.amount / transaction.divider.size
+
+        transaction.divider.forEach { dividerId ->
+            transaction.payer.forEach { payerId ->
+                if (dividerId != payerId) {
+                    deptRelations.add(
+                        DeptRelation(
+                            id = UUID.randomUUID().toString(),
+                            name = transaction.name,
+                            groupTransactionId = transaction.id,
+                            from = dividerId,
+                            to = payerId,
+                            amount = amountPerDivider / transaction.payer.size
+                        )
+                    )
+                }
+            }
+        }
+        return deptRelations
+    }
+
+    private fun calculateProportionalRelations(transaction: GroupTransaction, userPercentages: Map<String, Float>): List<DeptRelation> {
+        val deptRelations = mutableListOf<DeptRelation>()
+        val totalPercentage = userPercentages.values.sum()
+
+        if (totalPercentage != 100f) return deptRelations // Ensure percentages sum to 100%
+
+        transaction.payer.forEach { payerId ->
+            userPercentages.forEach { (userId, percentage) ->
+                if (userId != payerId) {
+                    val amountOwed = transaction.amount * (percentage / 100) / transaction.payer.size
+                    deptRelations.add(
+                        DeptRelation(
+                            id = UUID.randomUUID().toString(),
+                            groupTransactionId = transaction.id,
+                            from = userId,
+                            to = payerId,
+                            amount = amountOwed
+                        )
+                    )
+                }
+            }
+        }
+        return deptRelations
+    }
+
+    private fun calculateAdjustableRelations(transaction: GroupTransaction, userAdjustments: Map<String, Float>): List<DeptRelation> {
+        val deptRelations = mutableListOf<DeptRelation>()
+        val totalAdjustment = userAdjustments.values.sum()
+        val remainingAmount = transaction.amount - totalAdjustment
+        val evenSplitAmount = remainingAmount / transaction.divider.size
+
+        transaction.payer.forEach { payerId ->
+            transaction.divider.forEach { dividerId ->
+                if (dividerId != payerId) {
+                    val adjustment = userAdjustments[dividerId] ?: 0f
+                    val amountOwed = (adjustment + evenSplitAmount) / transaction.payer.size
+                    deptRelations.add(
+                        DeptRelation(
+                            id = UUID.randomUUID().toString(),
+                            groupTransactionId = transaction.id,
+                            from = dividerId,
+                            to = payerId,
+                            amount = amountOwed
+                        )
+                    )
+                }
+            }
+        }
+        return deptRelations
+    }
+
+    private fun calculateExactAmountRelations(transaction: GroupTransaction, userAmounts: Map<String, Float>): List<DeptRelation> {
+        val deptRelations = mutableListOf<DeptRelation>()
+
+        transaction.payer.forEach { payerId ->
+            userAmounts.forEach { (userId, amount) ->
+                if (userId != payerId) {
+                    deptRelations.add(
+                        DeptRelation(
+                            id = UUID.randomUUID().toString(),
+                            groupTransactionId = transaction.id,
+                            from = userId,
+                            to = payerId,
+                            amount = amount.toDouble() / transaction.payer.size
+                        )
+                    )
+                }
+            }
+        }
+        return deptRelations
+    }
+
+    private fun calculateSharesRelations(transaction: GroupTransaction, userShares: Map<String, Int>): List<DeptRelation> {
+        val deptRelations = mutableListOf<DeptRelation>()
+        val totalShares = userShares.values.sum()
+
+        if (totalShares == 0) return deptRelations // Avoid division by zero
+
+        transaction.payer.forEach { payerId ->
+            userShares.forEach { (userId, shares) ->
+                if (userId != payerId) {
+                    val amountOwed = transaction.amount * (shares.toDouble() / totalShares) / transaction.payer.size
+                    deptRelations.add(
+                        DeptRelation(
+                            id = UUID.randomUUID().toString(),
+                            groupTransactionId = transaction.id,
+                            from = userId,
+                            to = payerId,
+                            amount = amountOwed
+                        )
+                    )
+                }
+            }
+        }
+        return deptRelations
+    }
+
+    // Functions to update state flows for different share methods
+    fun updateUserPercentages(percentages: Map<String, Float>) {
+        _userPercentages.value = percentages
+    }
+
+    fun updateUserAdjustments(adjustments: Map<String, Float>) {
+        _userAdjustments.value = adjustments
+    }
+
+    fun updateUserExactAmounts(amounts: Map<String, Float>) {
+        _userExactAmounts.value = amounts
+    }
+
+    fun updateUserShares(shares: Map<String, Int>) {
+        _userShares.value = shares
+    }
+
+    fun updateShareMethod(method: String) {
+        _shareMethod.value = method
     }
 
     fun getGroupDeptRelations(groupId: String) {
@@ -556,6 +723,61 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+    fun loadGroupDeptRelations(groupId: String) {
+        viewModelScope.launch {
+            try {
+                val deptRelationsMap = FirebaseRepository.getGroupDeptRelations(groupId)
+                _groupIdDeptRelations.value = deptRelationsMap
+            } catch (e: Exception) {
+                Log.e("LoadGroupDeptRelations", "Error loading dept relations: ${e.message}", e)
+            }
+        }
+    }
+
+    fun updateGroupDeptRelations(transactionId: String, newDeptRelations: List<DeptRelation>) {
+        viewModelScope.launch {
+            try {
+                val currentRelations = _groupIdDeptRelations.value.toMutableMap()
+
+                // 更新指定的交易ID的 DeptRelations
+                currentRelations[transactionId] = newDeptRelations
+
+                // 更新 StateFlow 的值
+                _groupIdDeptRelations.value = currentRelations
+            } catch (e: Exception) {
+                Log.e("UpdateGroupDeptRelations", "Error updating dept relations: ${e.message}", e)
+            }
+        }
+    }
+
+    fun deleteDeptRelation(groupId: String, deptRelationId: String) {
+        viewModelScope.launch {
+            FirebaseRepository.deleteDeptRelation(groupId, deptRelationId)
+        }
+    }
+
+    fun toggleDivider(userId: String) {
+        val currentDividers = dividers.value.toMutableList()
+        if (currentDividers.contains(userId)) {
+            currentDividers.remove(userId)
+        } else {
+            currentDividers.add(userId)
+        }
+        _dividers.value = currentDividers
+    }
+
+    fun togglePayer(userId: String) {
+        val currentPayers = payers.value.toMutableList()
+        if (currentPayers.contains(userId)) {
+            currentPayers.remove(userId)
+        } else {
+            currentPayers.add(userId)
+        }
+        _payers.value = currentPayers
+    }
+
+
 }
 
 enum class GroupCreationStatus {

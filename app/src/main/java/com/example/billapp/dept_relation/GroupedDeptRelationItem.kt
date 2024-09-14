@@ -24,6 +24,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,18 +38,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.billapp.R
 import com.example.billapp.models.DeptRelation
+import com.example.billapp.viewModel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupedDeptRelationItem(
-    from: String,
-    to: String,
+    viewModel: MainViewModel,
+    fromName: String,
+    toName: String,
     totalAmount: Double,
-    deptRelations: List<DeptRelation>
+    deptRelations: List<DeptRelation>,
+    groupId: String
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-    var showBottomSheet by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -77,7 +79,7 @@ fun GroupedDeptRelationItem(
                             .size(48.dp)
                             .clip(CircleShape)
                     )
-                    Text(text = from, style = MaterialTheme.typography.bodyLarge)
+                    Text(text = fromName, style = MaterialTheme.typography.bodyLarge)
                 }
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
@@ -95,7 +97,7 @@ fun GroupedDeptRelationItem(
                             .size(48.dp)
                             .clip(CircleShape)
                     )
-                    Text(text = to, style = MaterialTheme.typography.bodyLarge)
+                    Text(text = toName, style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
                     text = "$${String.format("%.2f", totalAmount)}",
@@ -107,55 +109,12 @@ fun GroupedDeptRelationItem(
             if (expanded) {
                 deptRelations.forEach { relation ->
                     DeptRelationDetailItem(
+                        viewModel = viewModel,
                         deptRelation = relation,
-                        onClearDebt = { showBottomSheet = true }
+                        groupId = groupId,
                     )
                 }
             }
         }
     }
-
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
-        ) {
-            // Bottom sheet content for clearing debt
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Clear Debt", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Are you sure you want to clear this debt?")
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(onClick = { showBottomSheet = false }) {
-                        Text("Cancel")
-                    }
-                    Button(onClick = {
-                        // Handle clear debt action
-                        showBottomSheet = false
-                    }) {
-                        Text("Confirm")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun GroupedDeptRelationItemPreview()
-{
-    val deptRelations = listOf(
-        DeptRelation(from = "John Doe", to = "Jane Smith", amount = 100.0),
-        DeptRelation(from = "John Doe", to = "Jane Smith", amount = 50.0)
-    )
-    GroupedDeptRelationItem(from = "John Doe", to = "Jane Smith", totalAmount = 150.0, deptRelations = deptRelations)
 }

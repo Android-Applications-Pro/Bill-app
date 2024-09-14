@@ -5,6 +5,7 @@ import android.os.Parcelable
 
 data class DeptRelation(
     val id: String = "",
+    val name: String = "",
     val groupTransactionId: String = "",
     val from: String = "",
     val to: String = "",
@@ -15,12 +16,14 @@ data class DeptRelation(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
+        parcel.readString()!!,
         parcel.readDouble()
     ) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
+        parcel.writeString(name)
         parcel.writeString(groupTransactionId)
         parcel.writeString(from)
         parcel.writeString(to)
