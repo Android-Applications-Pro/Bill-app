@@ -8,13 +8,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private val avatarViewModel: AvatarViewModel by viewModels()
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -33,7 +31,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             MainScreen(
                 viewModel = viewModel,
-                avatarViewModel = avatarViewModel,
                 requestPermission = { permission ->
                     requestPermissionLauncher.launch(permission)
                 }

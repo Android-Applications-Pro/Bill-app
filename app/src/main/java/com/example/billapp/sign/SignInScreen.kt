@@ -1,5 +1,7 @@
 package com.example.billapp.sign
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,16 +45,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.billapp.Line.LineLoginButton
 import com.example.billapp.R
 import com.example.billapp.ui.theme.Brown2
 import com.example.billapp.ui.theme.Brown3
 import com.example.billapp.viewModel.MainViewModel
+import com.linecorp.linesdk.Scope
+import com.linecorp.linesdk.auth.LineAuthenticationParams
+import com.linecorp.linesdk.auth.LineLoginApi
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(
     viewModel: MainViewModel,
-    navController: NavController
+    navController: NavController,
+    onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -60,6 +68,24 @@ fun SignInScreen(
     val authState by viewModel.authState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    val context = LocalContext.current
+
+    // Line login launcher
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val lineLoginResult = LineLoginApi.getLoginResultFromIntent(result.data)
+        viewModel.handleLineLogin(lineLoginResult)
+    }
+
+    // Observe Line login result
+    val loginResult by viewModel.lineLoginResult.collectAsState()
+    LaunchedEffect(loginResult) {
+        if (loginResult?.isSuccess == true) {
+            onLoginSuccess()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -153,6 +179,19 @@ fun SignInScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LineLoginButton(
+                onClick = {
+                    val channelId = "2006372513" // Replace with your actual channel ID
+                    val params = LineAuthenticationParams.Builder()
+                        .scopes(listOf(Scope.PROFILE))
+                        .build()
+                    val loginIntent = LineLoginApi.getLoginIntent(context, channelId, params)
+                    launcher.launch(loginIntent)
+                }
+            )
+
             when (authState) {
                 is MainViewModel.AuthState.Loading -> {
                     CircularProgressIndicator(
@@ -181,7 +220,14 @@ fun SignInScreen(
     }
 }
 
-
 private fun validateForm(email: String, password: String): Boolean {
     return email.isNotBlank() && password.isNotBlank()
 }
+
+
+@Preview(showBackground = true)
+@Composable
+fun SignInScreenPreview() {
+    SignInScreen(viewModel = MainViewModel(), navController = NavController(LocalContext.current), onLoginSuccess = {})
+}
+

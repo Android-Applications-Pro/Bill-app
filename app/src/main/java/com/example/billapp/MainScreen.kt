@@ -1,6 +1,7 @@
 package com.example.billapp
 
 import AvatarScreen
+import CreateGroupScreen
 import ExposedDropdown
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -52,7 +53,6 @@ import com.example.billapp.bonus.CurrencyConverterScreen
 import com.example.billapp.bonus.ExchangeRateTableScreen
 import com.example.billapp.dept_relation.DeptRelationsScreen
 import com.example.billapp.group.AddInvitationScreen
-import com.example.billapp.group.CreateGroup
 import com.example.billapp.group.GroupInviteLinkScreen
 import com.example.billapp.group.GroupScreen
 import com.example.billapp.group.GroupSettingScreen
@@ -65,7 +65,6 @@ import com.example.billapp.sign.IntroScreen
 import com.example.billapp.sign.SignInScreen
 import com.example.billapp.sign.SignUpScreen
 import com.example.billapp.sign.SplashScreen
-import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -73,7 +72,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
-    avatarViewModel: AvatarViewModel,
     requestPermission: (String) -> Unit
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -103,7 +101,7 @@ fun MainScreen(
                 DrawerContent(navController, onCloseDrawer, {
                     viewModel.logOut()
                     navController.navigate("intro")
-                }, viewModel, avatarViewModel)
+                }, viewModel)
             }
         }
     ) {
@@ -165,7 +163,13 @@ fun MainScreen(
                 composable("intro") { IntroScreen(navController) }
                 // help me do this
                 composable("signin") {
-                    SignInScreen(viewModel = viewModel, navController = navController)
+                    SignInScreen(
+                        viewModel = viewModel,
+                        navController = navController,
+                        onLoginSuccess = {
+                            navController.navigate("home")
+                        }
+                    )
                 }
 
                 composable("signup") {
@@ -202,14 +206,12 @@ fun MainScreen(
                 composable("profile") {
                     ProfileScreen(
                         navController = navController,
-                        viewModel = viewModel,
-                        avatarViewModel = avatarViewModel,
-                        requestPermission = requestPermission
+                        viewModel = viewModel
                     )
                 }
 
                 composable("CreateGroupScreen") {
-                    CreateGroup(navController = navController,viewModel = viewModel, avatarViewModel = avatarViewModel)
+                    CreateGroupScreen(navController = navController,viewModel = viewModel)
                 }
                 composable("contact_us"){
                     ContactUsScreen(navController = navController, viewModel = viewModel)
@@ -292,7 +294,7 @@ fun MainScreen(
                     ItemAdd(navController, viewModel)
                 }
                 composable("avatar"){
-                    AvatarScreen(viewModel = avatarViewModel)
+                    AvatarScreen(viewModel = viewModel)
                 }
 
                 composable("deptRelationsScreen/{groupId}") { backStackEntry ->
@@ -317,11 +319,10 @@ fun DrawerContent(
     navController: NavController,
     onCloseDrawer: () -> Unit,
     onLogOut: () -> Unit,
-    viewModel: MainViewModel,
-    avatarViewModel: AvatarViewModel
+    viewModel: MainViewModel
 ) {
     val user = viewModel.user.collectAsState().value
-    val userImage = avatarViewModel.avatarUrl.collectAsState().value
+    val userImage = viewModel.avatarUrl.collectAsState().value
     var showDialog by remember { mutableStateOf(false) }
 
     Column(

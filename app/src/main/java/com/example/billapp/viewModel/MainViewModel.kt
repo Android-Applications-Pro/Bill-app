@@ -1,6 +1,5 @@
 package com.example.billapp.viewModel
 
-import AvatarRepository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -22,6 +21,8 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.linecorp.linesdk.LineProfile
+import com.linecorp.linesdk.auth.LineLoginResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -110,6 +111,15 @@ class MainViewModel : ViewModel() {
     private val _isUserLoggedIn = MutableStateFlow(false) // 初始值為 false
     val isUserLoggedIn: StateFlow<Boolean> = _isUserLoggedIn
 
+    private val _lineLoginResult = MutableStateFlow<LineLoginResult?>(null)
+    val lineLoginResult: StateFlow<LineLoginResult?> = _lineLoginResult.asStateFlow()
+
+    private val _avatarUrl = MutableStateFlow<String?>(null)
+    val avatarUrl: StateFlow<String?> = _avatarUrl.asStateFlow()
+
+    private val _groupAvatarUrl = MutableStateFlow<String?>(null)
+    val groupAvatarUrl: StateFlow<String?> = _groupAvatarUrl.asStateFlow()
+
     init {
         checkCurrentUser()
     }
@@ -121,6 +131,37 @@ class MainViewModel : ViewModel() {
         data class Error(val message: String) : AuthState()
     }
 
+    fun handleLineLogin(result: LineLoginResult) {
+        _lineLoginResult.value = result
+        if (result.isSuccess) {
+            val lineProfile = result.lineProfile
+            // Handle successful login, e.g., create or update user in your database
+            if (lineProfile != null) {
+                createOrUpdateUser(lineProfile)
+            }
+        } else {
+            _error.value = result.errorData?.toString() ?: "Line login failed"
+        }
+    }
+
+    private fun createOrUpdateUser(lineProfile: LineProfile) {
+        viewModelScope.launch {
+            try {
+                val user = User(
+                    id = lineProfile.userId,
+                    name = lineProfile.displayName,
+                    email = "", // Remove this line if User doesn't require an email
+                    image = lineProfile.pictureUrl?.toString() ?: ""
+                )
+                FirebaseRepository.createOrUpdateUser(user)
+                _user.value = user
+                _authState.value = AuthState.Authenticated(user)
+                loadUserData(user.id)
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
 
 
     private fun checkCurrentUser() {
@@ -277,6 +318,122 @@ class MainViewModel : ViewModel() {
         return FirebaseRepository.getUserName(userId)
     }
 
+
+
+    fun uploadAvatar(imageUri: Uri) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            Log.d("MainViewModel", "Uploading avatar for user: $currentUserId")
+
+            try {
+                val url = currentUserId?.let { FirebaseRepository.uploadAvatar(imageUri, it) }
+                _avatarUrl.value = url
+                Log.d("MainViewModel", "Avatar uploaded successfully: $url")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error uploading avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun uploadGroupAvatar(imageUri: Uri, groupId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            Log.d("MainViewModel", "Uploading group avatar for group: $groupId")
+
+            try {
+                val url = FirebaseRepository.uploadGroupAvatar(imageUri, groupId)
+                _groupAvatarUrl.value = url
+                Log.d("MainViewModel", "Group avatar uploaded successfully: $url")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error uploading group avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun usePresetAvatar(presetResourceId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            Log.d("MainViewModel", "Using preset avatar: $presetResourceId for user: $currentUserId")
+
+            try {
+                val presetUrl = "android.resource://com.example.billapp/$presetResourceId"
+                currentUserId?.let { FirebaseRepository.updateUserImage(it, presetUrl) }
+                _avatarUrl.value = presetUrl
+                Log.d("MainViewModel", "Preset avatar used successfully: $presetUrl")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error using preset avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadAvatar() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+            Log.d("MainViewModel", "Loading avatar for user: $currentUserId")
+
+            try {
+                val avatarUrl = currentUserId?.let { FirebaseRepository.getUserAvatarUrl(it) }
+                _avatarUrl.value = avatarUrl
+                Log.d("MainViewModel", "Avatar loaded successfully: $avatarUrl")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error loading avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadGroupAvatar(groupId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            Log.d("MainViewModel", "Loading group avatar for group: $groupId")
+
+            try {
+                val groupAvatarUrl = FirebaseRepository.getGroupAvatarUrl(groupId)
+                _groupAvatarUrl.value = groupAvatarUrl
+                Log.d("MainViewModel", "Group avatar loaded successfully: $groupAvatarUrl")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error loading group avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun usePresetGroupAvatar(presetResourceId: Int, groupId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            Log.d("MainViewModel", "Using preset group avatar: $presetResourceId for group: $groupId")
+
+            try {
+                val presetUrl = "android.resource://com.example.billapp/$presetResourceId"
+                FirebaseRepository.updateGroupImage(groupId, presetUrl)
+                _groupAvatarUrl.value = presetUrl
+                Log.d("MainViewModel", "Preset group avatar used successfully: $presetUrl")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error using preset group avatar: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+
     // Groups Function //
     fun loadUserGroups() {
         viewModelScope.launch {
@@ -390,15 +547,14 @@ class MainViewModel : ViewModel() {
                 val groupId = FirebaseRepository.createGroup(group) // groupId is now returned
 
                 imageUri?.let { uri ->
-                    val avatarRepository = AvatarRepository(FirebaseStorage.getInstance(), context)
 
                     if (uri.toString().startsWith("android.resource://")) {
                         // Default image
-                        avatarRepository.updateGroupImage(groupId, uri.toString())
+                        FirebaseRepository.updateGroupImage(groupId, uri.toString())
                     } else {
                         // Custom image
-                        val imageUrl = avatarRepository.uploadGroupAvatar(uri, groupId)
-                        imageUrl?.let { avatarRepository.updateGroupImage(groupId, it) }
+                        val imageUrl = uploadGroupAvatar(uri, groupId)
+                        FirebaseRepository.updateGroupImage(groupId, imageUrl.toString())
                     }
                 }
 

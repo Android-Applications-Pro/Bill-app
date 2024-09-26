@@ -111,6 +111,7 @@ fun GroupScreen(
         ) {
             // Group list
             GroupList(
+                viewModel = viewModel,
                 groupItems = groups,
                 onGroupClick = { groupId ->
                     navController.navigate("groupDetail/$groupId")

@@ -138,6 +138,8 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.0")
 
+    implementation("com.linecorp.linesdk:linesdk:5.10.1")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,5 +1,7 @@
 package com.example.billapp.firebase
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.example.billapp.models.DeptRelation
 import com.example.billapp.models.Group
@@ -9,11 +11,14 @@ import com.example.billapp.models.User
 import com.example.billapp.utils.Constants
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
@@ -24,6 +29,7 @@ object FirebaseRepository {
 
     private fun getFirestoreInstance() = FirebaseFirestore.getInstance()
     private fun getAuthInstance() = FirebaseAuth.getInstance()
+    private fun getStorageInstance() = FirebaseStorage.getInstance()
 
     suspend fun signIn(email: String, password: String): User = suspendCoroutine { continuation ->
         getAuthInstance().signInWithEmailAndPassword(email, password)
@@ -44,6 +50,20 @@ object FirebaseRepository {
                 }
             }
     }
+
+    suspend fun createOrUpdateUser(user: User): Unit = suspendCancellableCoroutine { continuation ->
+        getFirestoreInstance().collection(Constants.USERS)
+            .document(user.id)
+            .set(user)
+            .addOnSuccessListener {
+                continuation.resume(Unit)
+            }
+            .addOnFailureListener { e ->
+                continuation.resumeWithException(e)
+            }
+    }
+
+
 
     fun signOut() {
         getAuthInstance().signOut()
@@ -70,6 +90,101 @@ object FirebaseRepository {
             }
     }
 
+    // Avatar //
+
+    suspend fun uploadAvatar(imageUri: Uri, userId: String): String? = suspendCoroutine { continuation ->
+        val storageRef = getStorageInstance().reference.child("avatars/$userId")
+        Log.d("FirebaseRepository", "Uploading avatar for user: $userId")
+
+        storageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d("FirebaseRepository", "Avatar uploaded successfully: $uri")
+                    continuation.resume(uri.toString())
+                }.addOnFailureListener { e ->
+                    Log.e("FirebaseRepository", "Error getting download URL: ${e.message}")
+                    continuation.resumeWithException(e)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseRepository", "Error uploading avatar: ${e.message}")
+                continuation.resumeWithException(e)
+            }
+    }
+
+    suspend fun getUserAvatarUrl(userId: String): String? = suspendCoroutine { continuation ->
+        val storageRef = getStorageInstance().reference.child("avatars/$userId")
+        Log.d("FirebaseRepository", "Getting avatar URL for user: $userId")
+
+        storageRef.downloadUrl
+            .addOnSuccessListener { uri ->
+                Log.d("FirebaseRepository", "Avatar URL retrieved successfully: $uri")
+                continuation.resume(uri.toString())
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseRepository", "Error retrieving avatar URL: ${e.message}")
+                continuation.resumeWithException(e)
+            }
+    }
+
+    suspend fun uploadGroupAvatar(imageUri: Uri, groupId: String): String? = suspendCoroutine { continuation ->
+        val storageRef = getStorageInstance().reference.child("groupAvatars/$groupId")
+        Log.d("FirebaseRepository", "Uploading group avatar for group: $groupId")
+
+        storageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d("FirebaseRepository", "Group avatar uploaded successfully: $uri")
+                    continuation.resume(uri.toString())
+                }.addOnFailureListener { e ->
+                    Log.e("FirebaseRepository", "Error getting group download URL: ${e.message}")
+                    continuation.resumeWithException(e)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseRepository", "Error uploading group avatar: ${e.message}")
+                continuation.resumeWithException(e)
+            }
+    }
+
+    suspend fun getGroupAvatarUrl(groupId: String): String? = suspendCoroutine { continuation ->
+        val storageRef = getStorageInstance().reference.child("groupAvatars/$groupId")
+        Log.d("FirebaseRepository", "Getting group avatar URL for group: $groupId")
+
+        storageRef.downloadUrl
+            .addOnSuccessListener { uri ->
+                Log.d("FirebaseRepository", "Group avatar URL retrieved successfully: $uri")
+                continuation.resume(uri.toString())
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseRepository", "Error retrieving group avatar URL: ${e.message}")
+                continuation.resumeWithException(e)
+            }
+    }
+
+    suspend fun updateUserImage(userId: String, imageUrl: String) {
+        try {
+            Log.d("FirebaseRepository", "Updating user image for user: $userId")
+            getFirestoreInstance().collection(Constants.USERS)
+                .document(userId)
+                .update("image", imageUrl)
+            Log.d("FirebaseRepository", "User image updated successfully for user: $userId")
+        } catch (e: Exception) {
+            Log.e("FirebaseRepository", "Error updating user image: ${e.message}")
+        }
+    }
+
+    suspend fun updateGroupImage(groupId: String, imageUrl: String) {
+        try {
+            Log.d("FirebaseRepository", "Updating group image for group: $groupId")
+            getFirestoreInstance().collection("groups")
+                .document(groupId)
+                .update("image", imageUrl)
+            Log.d("FirebaseRepository", "Group image updated successfully for group: $groupId")
+        } catch (e: Exception) {
+            Log.e("FirebaseRepository", "Error updating group image: ${e.message}")
+        }
+    }
 
 
     suspend fun createGroup(group: Group): String = withContext(Dispatchers.IO) {

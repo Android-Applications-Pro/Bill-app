@@ -28,20 +28,19 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    viewModel: MainViewModel,
-    avatarViewModel: AvatarViewModel,
-    requestPermission: (String) -> Unit
+    viewModel: MainViewModel
 ) {
     val user by viewModel.user.collectAsState()
     var name by remember { mutableStateOf("") }
@@ -96,7 +95,7 @@ fun ProfileScreen(
                             .padding(8.dp)
                             .align(Alignment.CenterHorizontally)
                     ) {
-                        AvatarScreen(avatarViewModel)
+                        AvatarScreen(viewModel)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -136,7 +135,7 @@ fun ProfileScreen(
                                         email = email,
                                     )
                                     viewModel.updateUserProfile(updatedUser)
-                                    imageUri?.let { it1 -> avatarViewModel.uploadAvatar(it1) }
+                                    imageUri?.let { it1 -> viewModel.uploadAvatar(it1) }
                                 }
                             }
                             isEditing = !isEditing
@@ -149,4 +148,12 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProfileScreenPreview() {
+    val navController = rememberNavController()
+    val viewModel = MainViewModel()
+    ProfileScreen(navController = navController, viewModel = viewModel)
 }
