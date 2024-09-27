@@ -25,7 +25,6 @@ val SecondFontColor = Color(0xFF737373)
 val PieRedColor = Color(0xFFA95A63)
 val PieGreenColor = Color(0xFF90A171)
 
-
 //灰階
 val White = Color(0xFFFFFFFF)
 val LightGray = Color(0xFFD9D9D9)

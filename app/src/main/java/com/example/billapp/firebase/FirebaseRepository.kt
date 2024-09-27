@@ -71,6 +71,13 @@ object FirebaseRepository {
     }
 
 
+    suspend fun updateUserExperience(userId: String, amount: Int) {
+        getFirestoreInstance().collection("users").document(userId).update("experience", FieldValue.increment(amount.toLong()))
+    }
+
+    suspend fun updateUserTrustLevel(userId: String, amount: Int) {
+        getFirestoreInstance().collection("users").document(userId).update("trustLevel", FieldValue.increment(amount.toLong()))
+    }
 
     suspend fun createGroup(group: Group): String = withContext(Dispatchers.IO) {
         val currentUser = getAuthInstance().currentUser ?: throw IllegalStateException("No user logged in")

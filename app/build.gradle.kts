@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -73,6 +74,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation(libs.volley)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.work.runtime.ktx)
 
     val compose_version = "1.5.1"
     implementation ("androidx.compose.material:material:$compose_version")

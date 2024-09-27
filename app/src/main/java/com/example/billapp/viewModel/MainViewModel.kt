@@ -121,7 +121,33 @@ class MainViewModel : ViewModel() {
         data class Error(val message: String) : AuthState()
     }
 
+    // 將經驗值加上 amount
+    fun updateUserExperience(userId: String, amount: Int) {
+        viewModelScope.launch {
+            FirebaseRepository.updateUserExperience(userId, amount)
+            reloadUserData()
+        }
+    }
 
+    // 將信任度加上 amount
+    fun updateUserTrustLevel(userId: String, amount: Int) {
+        viewModelScope.launch {
+            FirebaseRepository.updateUserTrustLevel(userId, amount)
+            reloadUserData()
+        }
+    }
+
+    fun dailyExperienceIncrease(userId: String) {
+        updateUserExperience(userId, 10)
+    }
+
+    fun getUserLevel(): Int {
+        return user.value?.experience?.div(100) ?: 0
+    }
+
+    fun getUserTrustLevel(): Int {
+        return user.value?.trustLevel ?: 0
+    }
 
     private fun checkCurrentUser() {
         viewModelScope.launch {
@@ -250,7 +276,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun getCurrentUserID(): String {
+    fun getCurrentUserID(): String {
         val currentUser = FirebaseAuth.getInstance().currentUser
         return currentUser?.uid ?: ""
     }
