@@ -86,6 +86,7 @@ fun GroupScreen(
                             Button(
                                 onClick = { navController.navigate("CreateGroupScreen") },
                                 shape = RoundedCornerShape(8.dp),
+                                elevation = ButtonDefaults.buttonElevation(10.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
                                 ),
@@ -104,6 +105,7 @@ fun GroupScreen(
                             Button(
                                 onClick = { navController.navigate("Join_Group") },
                                 shape = RoundedCornerShape(8.dp),
+                                elevation = ButtonDefaults.buttonElevation(10.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
                                 ),
