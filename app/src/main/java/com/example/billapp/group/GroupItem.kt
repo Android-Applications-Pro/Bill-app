@@ -56,7 +56,7 @@ fun GroupItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 40.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp)

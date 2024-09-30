@@ -227,32 +227,32 @@ class MainViewModel : ViewModel() {
 
 
     fun clearData() {
-        _groupCreationStatus.value = GroupCreationStatus.IDLE
-        _groupIdDebtRelations.value = emptyMap()
-        currentGroup.value = null
-        _userTransactions.value = emptyList()
-        _groupTransactions.value = emptyList()
-        _debtRelations.value = emptyList()
-        _isLoading.value = false
-        _error.value = null
-        _dividers.value = emptyList()
-        _payers.value = emptyList()
-        _transactionType.value = "支出"
-        _amount.value = 0.0
-        _note.value = ""
-        _date.value = Timestamp.now()
-        _category.value = ""
-        _name.value = ""
-        _shareMethod.value = "均分"
-        _groupMembers.value = emptyList()
-        _transaction.value = null
-        _updatetime.value = Timestamp.now()
-        _userGroups.value = emptyList()
-        _userPercentages.value = emptyMap()
-        _userAdjustments.value = emptyMap()
-        _userExactAmounts.value = emptyMap()
-        _userShares.value = emptyMap()
-        _groupName.value = ""
+//        _groupCreationStatus.value = GroupCreationStatus.IDLE
+//        _groupIdDebtRelations.value = emptyMap()
+//        currentGroup.value = null
+//        _userTransactions.value = emptyList()
+//        _groupTransactions.value = emptyList()
+//        _debtRelations.value = emptyList()
+//        _isLoading.value = false
+//        _error.value = null
+//        _dividers.value = emptyList()
+//        _payers.value = emptyList()
+//        _transactionType.value = "支出"
+//        _amount.value = 0.0
+//        _note.value = ""
+//        _date.value = Timestamp.now()
+//        _category.value = ""
+//        _name.value = ""
+//        _shareMethod.value = "均分"
+//        _groupMembers.value = emptyList()
+//        _transaction.value = null
+//        _updatetime.value = Timestamp.now()
+//        _userGroups.value = emptyList()
+//        _userPercentages.value = emptyMap()
+//        _userAdjustments.value = emptyMap()
+//        _userExactAmounts.value = emptyMap()
+//        _userShares.value = emptyMap()
+//        _groupName.value = ""
     }
 
     fun reloadUserData() {
