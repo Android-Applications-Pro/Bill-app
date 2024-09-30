@@ -72,6 +72,7 @@ import com.example.billapp.ui.theme.ButtonGrayColor
 import com.example.billapp.ui.theme.BoxBackgroundColor
 import com.example.billapp.ui.theme.Green
 import com.example.billapp.ui.theme.Red
+import com.example.billapp.ui.theme.ItemAddMainColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +99,7 @@ fun StylishTextField(
             .padding(8.dp)
             .border(2.dp, Brown1, RoundedCornerShape(8.dp)),
         colors = TextFieldDefaults.textFieldColors(
-            containerColor = BoxBackgroundColor,
+            containerColor = ItemAddMainColor,
             focusedIndicatorColor = Brown1,
             focusedLabelColor = Brown5,
 
@@ -120,7 +121,7 @@ fun CustomKeyboard(
     modifier: Modifier = Modifier
 ) {
     val capybaraBrown = VeryDarkGray
-    val capybaraLight = BoxBackgroundColor
+    val capybaraLight = ItemAddMainColor
 
     Column(
         modifier = modifier
@@ -137,69 +138,69 @@ fun CustomKeyboard(
 
         // 鍵盤按鈕
         Row(modifier = Modifier.fillMaxWidth()) {
-            Button(modifier = buttonModifier, onClick = { onKeyClick("7") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("7") }, colors = buttonColors) {
                 Text("7", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("8") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("8") }, colors = buttonColors) {
                 Text("8", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("9") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("9") }, colors = buttonColors) {
                 Text("9", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("÷") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("÷") }, colors = buttonColors) {
                 Text("÷", color = capybaraBrown)
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Button(modifier = buttonModifier, onClick = { onKeyClick("4") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("4") }, colors = buttonColors) {
                 Text("4", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("5") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("5") }, colors = buttonColors) {
                 Text("5", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("6") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("6") }, colors = buttonColors) {
                 Text("6", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("×") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)) , onClick = { onKeyClick("×") }, colors = buttonColors) {
                 Text("×", color = capybaraBrown)
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Button(modifier = buttonModifier, onClick = { onKeyClick("1") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("1") }, colors = buttonColors) {
                 Text("1", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("2") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("2") }, colors = buttonColors) {
                 Text("2", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("3") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("3") }, colors = buttonColors) {
                 Text("3", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("-") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("-") }, colors = buttonColors) {
                 Text("-", color = capybaraBrown)
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Button(modifier = buttonModifier, onClick = { onKeyClick(".") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick(".") }, colors = buttonColors) {
                 Text(".", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("0") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("0") }, colors = buttonColors) {
                 Text("0", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = onDeleteClick, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = onDeleteClick, colors = buttonColors) {
                 Text("⌫", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = { onKeyClick("+") }, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = { onKeyClick("+") }, colors = buttonColors) {
                 Text("+", color = capybaraBrown)
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
-            Button(modifier = buttonModifier, onClick = onClearClick, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = onClearClick, colors = buttonColors) {
                 Text("AC", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = onEqualsClick, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = onEqualsClick, colors = buttonColors) {
                 Text("=", color = capybaraBrown)
             }
-            Button(modifier = buttonModifier, onClick = onOkClick, colors = buttonColors) {
+            Button(modifier = buttonModifier .border(2.dp, Brown1, shape = RoundedCornerShape(8.dp)), onClick = onOkClick, colors = buttonColors) {
                 Text("OK", color = capybaraBrown)
             }
         }
@@ -375,6 +376,7 @@ fun ItemAdd(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (transactionType == "支出") Orange1 else ButtonGrayColor
                         ),
+                        elevation = if (transactionType == "支出") ButtonDefaults.buttonElevation(6.dp) else ButtonDefaults.buttonElevation(0.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "支出",color = if (transactionType == "支出")  VeryDarkGray  else DarkGray,fontWeight = FontWeight.Bold)
@@ -387,6 +389,7 @@ fun ItemAdd(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (transactionType == "收入") Orange1 else ButtonGrayColor
                         ),
+                        elevation =  if (transactionType == "收入") ButtonDefaults.buttonElevation(6.dp) else ButtonDefaults.buttonElevation(0.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "收入",color = if (transactionType == "收入") VeryDarkGray  else DarkGray,fontWeight = FontWeight.Bold)
@@ -664,6 +667,7 @@ fun ItemAdd(
                             viewModel.setNote("")
                             navController.popBackStack()
                         },
+                        elevation = ButtonDefaults.buttonElevation(2.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Green
                         ),

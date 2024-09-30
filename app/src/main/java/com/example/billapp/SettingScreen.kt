@@ -1,274 +1,360 @@
 package com.example.billapp
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
+import kotlinx.coroutines.launch
 
+val lightBrown = Color(0xFF6D4C41)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavController,
     viewModel: MainViewModel,
+    avatarViewModel: AvatarViewModel
 ) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
-    Column(
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    val onCloseDrawer: () -> Unit = {
+        scope.launch {
+            drawerState.close()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "設定",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFB67B6C)
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .background(Color(0xD2FFF3E6))
+
+        ) {
+            ProfileCard(viewModel,navController,avatarViewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            NotificationSwitch()
+            SettingsList(navController,context)
+            Spacer(modifier = Modifier.weight(1f))
+            LogoutButton(viewModel, navController, onCloseDrawer)
+        }
+    }
+}
+
+@Composable
+fun ProfileCard(
+    viewModel: MainViewModel,
+    navController: NavController,
+    avatarViewModel: AvatarViewModel
+) {
+    val user = viewModel.user.collectAsState().value
+    val userImage = avatarViewModel.avatarUrl.collectAsState().value
+
+    val level by remember { mutableStateOf(viewModel.getUserLevel()) }
+    val trustLevel by remember { mutableStateOf(viewModel.getUserTrustLevel()) }
+    val budget by remember { mutableStateOf(viewModel.getUserBudget().toString()) } // Add budget state
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
-            .background(Color(0xFFE4DFCB))
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
+            .border(2.dp, lightBrown, RoundedCornerShape(8.dp)), // Add border with color and shape
+        colors = CardDefaults.cardColors(containerColor = Color(0xD2FFF3E6)), // Set card background color here
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        // 标题部分
-        Text(
-            text = "設定",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp) // Adjust the size as needed
+                        .padding(8.dp)
+                ) {
+                    if (userImage != null) {
+                        AsyncImage(
+                            model = coil.request.ImageRequest.Builder(LocalContext.current)
+                                .data(userImage)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.ic_user_place_holder),
+                            contentDescription = "User Image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.clip(CircleShape)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(32.dp))
+                Text(
+                    text = user!!.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(onClick = { navController.navigate("profile") }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Profile"
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ProgressBar("信譽點數", trustLevel.toFloat() / 100, "$trustLevel/100", MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+            ProgressBar("社交等級", level.toFloat() / 100, "等級: LV$level", MaterialTheme.colorScheme.secondary)
+            Spacer(modifier = Modifier.height(8.dp))
+            ProgressBar("血條", 1 / budget.toFloat(), "____/$budget", MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+
+@Composable
+fun NotificationSwitch() {
+    var isChecked by remember { mutableStateOf(false) }
+    val lightBrown = Color(0xFFD3BA9E)
+    val darkBrown = Color(0xFF4F372F)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = lightBrown)
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            color = Color.Black
-        )
-
-        // 头像和进度条部分，添加边框
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .padding(bottom = 24.dp)
-                .border(2.dp, Color.Black, RoundedCornerShape(16.dp)) // 设置边框和圆角
-                .padding(16.dp) // 给内容留一些内边距
-        ) {
-            // 头像部分
-            Image(
-                painter = painterResource(R.drawable.avatar_placeholder_2),
-                contentDescription = "Character Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(80.dp) // 设置头像大小
-                    .clip(CircleShape) // 设置头像为圆形
-                    .background(Color.Gray) // 头像背景颜色
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 名字和笔图标部分
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 人物名称
-                Text(
-                    text = "AMY",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // 笔的图标
-                // 可点击的笔图标
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_edit_24), // 使用你的笔图标资源
-                    contentDescription = "Edit Icon",
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clickable(onClick = {
-                            // 点击后执行的操作，例如导航到编辑页面
-                           // navController.navigate("edit_profile") // 确保在此处替换为你的目标页面
-                        }),
-                    tint = Color.Gray
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 进度条部分
-            ParallelogramProgressBar(
-                TargetProgress = 1f,
-                text = "信譽等級: 5/5",
-                color = Color.Green,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            ParallelogramProgressBar(
-                TargetProgress = 0.5f,
-                text = "社交值: 等級: LV50/100",
-                color = Color.Blue,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            ParallelogramProgressBar(
-                TargetProgress = 0.083f,
-                text = "血條: 2500/30000",
-                color = Color.Red,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-        }
-
-        // 开关按钮
-        SwitchWithLabelPreview()
-
-        // 按钮部分
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingButton(
-            text = "個人資料修改",
-            icon = painterResource(id = R.drawable.baseline_person_24),
-            onClick = {
-                navController.navigate("profile")
-            }
-        )
-
-        SettingButton(
-            text = "聯絡我們",
-            icon = painterResource(id = R.drawable.baseline_call_24),
-            onClick = {
-                navController.navigate("contact_us")
-            }
-        )
-
-        SettingButton(
-            text = "問題回報",
-            icon = painterResource(id = R.drawable.baseline_report_problem_24),
-            onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/gi6Fyew6qfFyVAn29"))
-                context.startActivity(intent)
-            }
-        )
-
-        SettingButton(
-            text = "關於",
-            icon = painterResource(id = R.drawable.baseline_speaker_notes_24),
-            onClick = {
-                navController.navigate("about")
-            }
-        )
-    }
-}
-
-@Composable
-fun SettingButton(
-    text: String,
-    icon: Painter,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .size(height = 60.dp, width = 200.dp), // 设置按钮高度和宽度
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(Color(0xFFBCBCBC))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // 左侧的图标
-            Icon(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .weight(1f), // 确保图标靠左
-                tint = Color.Black
-            )
-
-            // 右侧的文本
-            Text(
-                text = text,
-                fontSize = 18.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .weight(8f) // 确保文本占据剩余空间
-            )
-        }
-    }
-}
-
-
-@Composable
-fun CustomSwitchWithLabel(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    val switchWidth = 60.dp  // 开关的宽度
-    val thumbSize = 30.dp    // 按钮的大小
-    val thumbOffset = if (checked) (switchWidth - thumbSize) else 0.dp  // 计算按钮的位置
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(16.dp)
-    ) {
-        // 图标
-        Icon(
-            painter = painterResource(id = R.drawable.baseline_circle_notifications_24), // 使用系统图标，你可以替换为自己的图标
-            contentDescription = "Notification Icon",
-            tint = Color.Yellow,
-            modifier = Modifier.size(32.dp)
-        )
-
-        Spacer(modifier = Modifier.width(8.dp)) // 图标和文字之间的间距
-
-        // 通知文字
-        Text(
-            text = if (checked) "通知已開啟" else "通知已關閉",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-
-        Spacer(modifier = Modifier.width(16.dp)) // 文字和开关之间的间距
-
-        // 自定义开关
-        Row(
-            modifier = Modifier
-                .size(width = switchWidth, height = 30.dp)
-                .background(
-                    color = if (checked) Color(0xFF8A7059) else Color(0xFFB0BEC5),
-                    shape = RoundedCornerShape(50)
-                )
-                .clickable { onCheckedChange(!checked) },
+                .padding(vertical = 8.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .offset(x = thumbOffset)
-                    .size(thumbSize)
-                    .background(Color.White, shape = CircleShape)
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Notification Icon",
+                tint = darkBrown,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = if (isChecked) "通知已開啟" else "通知已關閉",
+                style = MaterialTheme.typography.bodyLarge,
+                color = darkBrown,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(16.dp))  // Add a spacer to ensure proper alignment
+            Switch(
+                checked = isChecked,
+                onCheckedChange = { isChecked = it },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color(0xFF4F372F),
+                    uncheckedThumbColor = Color.Gray,
+                    checkedTrackColor = Color(0xFFB67B6C),
+                    uncheckedTrackColor = Color.LightGray
+                )
+            )
+        }
+    }
+}
+
+
+
+
+@Composable
+fun SettingsList(navController: NavController, context: Context) {
+    val settingsItems = listOf(
+        //SettingsItem("個人資料修改", R.drawable.baseline_person_24) { navController.navigate("profile") },
+        SettingsItem("聯絡我們", R.drawable.baseline_call_24) { navController.navigate("contact_us") },
+        SettingsItem("問題回報", R.drawable.baseline_report_problem_24) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/gi6Fyew6qfFyVAn29"))
+            context.startActivity(intent)
+        },
+        SettingsItem("關於", R.drawable.baseline_speaker_notes_24) { navController.navigate("about") },
+        SettingsItem("Line pay", R.drawable.baseline_wallet_24){
+            val linePayUri = Uri.parse("linepay://")
+            val linePayIntent = Intent(Intent.ACTION_VIEW, linePayUri)
+            try {
+                context.startActivity(linePayIntent)
+            } catch (e: ActivityNotFoundException) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://pay.line.me/portal/tw/main"))
+                context.startActivity(intent)
+            }
+        }
+    )
+
+
+    settingsItems.forEach { item ->
+        SettingsListItem(item)
+    }
+}
+
+@Composable
+fun SettingsListItem(item: SettingsItem) {
+    val lightBrown = Color(0xFFD3BA9E)
+    val darkBrown = Color(0xFF4F372F)
+
+    Button(
+        onClick = item.onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = lightBrown),
+        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = item.iconResId),
+                contentDescription = null,
+                tint = darkBrown,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = darkBrown,
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
 @Composable
-fun SwitchWithLabelPreview() {
-    var isChecked by remember { mutableStateOf(false) }
+fun LogoutButton(viewModel: MainViewModel?, navController: NavController?, onCloseDrawer: () -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    Button(
+        onClick = { showDialog = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+    ) {
+        Text("登出", color = MaterialTheme.colorScheme.onError)
+    }
 
-    CustomSwitchWithLabel(
-        checked = isChecked,
-        onCheckedChange = { isChecked = it }
-    )
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            title = {
+                Text(text = "Confirm Logout")
+            },
+            text = {
+                Text("Are you sure you want to log out?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                        onCloseDrawer()
+                        viewModel?.logOut {
+                            navController?.navigate("intro") {
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            }
+                        }
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                    }
+                ) {
+                    Text("No")
+                }
+            }
+        )
+    }
 }
+
+
+@Composable
+fun ProgressBar(label: String, progress: Float, text: String, color: Color) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(MaterialTheme.shapes.small),
+            color = color,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.align(Alignment.End)
+        )
+    }
+}
+
+data class SettingsItem(
+    val title: String,
+    val iconResId: Int,
+    val onClick: () -> Unit
+)

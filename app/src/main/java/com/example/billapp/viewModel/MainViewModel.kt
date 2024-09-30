@@ -17,6 +17,7 @@ import com.example.billapp.utils.Constants
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -142,6 +143,14 @@ class MainViewModel : ViewModel() {
         return user.value?.trustLevel ?: 0
     }
 
+    fun getUserBudget(): Int {
+        return user.value?.budget ?: 0
+    }
+
+    fun updateUserBudget(budget: Int) {
+        FirebaseRepository.updateUserBudget(budget)
+    }
+
     private fun checkCurrentUser() {
         viewModelScope.launch {
             val currentUser = FirebaseAuth.getInstance().currentUser
@@ -170,11 +179,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun logOut() {
-        FirebaseRepository.signOut()
-        clearData()
-        _authState.value = AuthState.Initial
-        _isUserLoggedIn.value = false
+    fun logOut(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            clearData()
+            FirebaseRepository.signOut()
+            _authState.value = AuthState.Initial
+            _isUserLoggedIn.value = false
+            onComplete()
+        }
     }
 
     fun signIn(email: String, password: String) {
@@ -218,7 +230,6 @@ class MainViewModel : ViewModel() {
         _groupCreationStatus.value = GroupCreationStatus.IDLE
         _groupIdDebtRelations.value = emptyMap()
         currentGroup.value = null
-        _user.value = null
         _userTransactions.value = emptyList()
         _groupTransactions.value = emptyList()
         _debtRelations.value = emptyList()
@@ -254,6 +265,36 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+    // 負的代表自己欠錢，正的代表別人欠錢
+    fun calculateTotalDept(groupId: String): Double {
+        val userId = getCurrentUserID()
+        var totalDebt = 0.0
+
+        viewModelScope.launch {
+
+            val groupIdDeptRelations = FirebaseRepository.getGroupDeptRelations(groupId)
+            // Flatten the lists of DebtRelation into a single list
+            val allDebtRelations = groupIdDeptRelations.values.flatten()
+
+            // Iterate over each DebtRelation and calculate the debt
+            allDebtRelations.forEach { debtRelation ->
+                // 如果是user欠別人的錢，將金額減去
+                if (debtRelation.from == userId) {
+                    totalDebt -= debtRelation.amount
+                }
+                // 如果是別人欠user的錢，將金額加上
+                if (debtRelation.to == userId) {
+                    totalDebt += debtRelation.amount
+                }
+            }
+        }
+
+        return totalDebt
+    }
+
+
+
 
     fun updateUserProfile(updatedUser: User) {
         viewModelScope.launch {
@@ -294,6 +335,10 @@ class MainViewModel : ViewModel() {
 
     suspend fun getUserName(userId: String): String {
         return FirebaseRepository.getUserName(userId)
+    }
+
+    fun getCurrentUserName(): String {
+        return user.value?.name ?: ""
     }
 
     // Groups Function //

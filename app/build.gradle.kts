@@ -126,6 +126,10 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
+    //icon
+    implementation ("androidx.compose.material:material-icons-core:1.5.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    
     // image
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.0")
@@ -144,6 +148,8 @@ dependencies {
     // Add the dependencies for the Firebase Cloud Messaging and Analytics libraries
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-messaging")
+
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

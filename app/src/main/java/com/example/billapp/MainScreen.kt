@@ -101,10 +101,6 @@ fun MainScreen(
                         drawerState.close()
                     }
                 }
-                DrawerContent(navController, onCloseDrawer, {
-                    viewModel.logOut()
-                    navController.navigate("intro")
-                }, viewModel, avatarViewModel)
             }
         }
     ) {
@@ -151,6 +147,7 @@ fun MainScreen(
                             scope.launch { drawerState.open() }
                         },
                         viewModel = viewModel,
+                        avatarViewModel = avatarViewModel
                     )
                 }
                 composable("main") {
@@ -160,6 +157,7 @@ fun MainScreen(
                             scope.launch { drawerState.open() }
                         },
                         viewModel = viewModel,
+                        avatarViewModel = avatarViewModel
                     )
                 }
 
@@ -198,6 +196,7 @@ fun MainScreen(
                     SettingScreen(
                         navController = navController,
                         viewModel = viewModel,
+                        avatarViewModel = avatarViewModel
                     )
                 }
                 composable("profile") {

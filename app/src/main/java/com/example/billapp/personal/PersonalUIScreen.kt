@@ -195,78 +195,59 @@ fun PersonalUIScreen(
     // 格式化日期
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = Color(0xFFE4DFCB),
-                    titleContentColor = Color(0xFF000000),
-                ),
-                /*title = {
-                    Text(
-                        text = "個人",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                },*/
-                title = {
-                    Box {
-                        Button(
-                            onClick = { expanded = true },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFA68A68),  // 设置按钮背景色
-                                contentColor = Color(0xFF000000)    // 设置按钮文字颜色
-                            )
-                        ) {
-                            Text("${selectedType}分析")
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("支出") }, // 使用 Composable 函數來顯示文字
-                                onClick = {
-                                    selectedType = "支出"
-                                    selectedChart = "支出"
-                                    Type = "expanse"
-                                    filterRecords()
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("結餘") }, // 使用 Composable 函數來顯示文字
-                                onClick = {
-                                    selectedType = "結餘"
-                                    selectedChart = "結餘"
-                                    Type = "balance"
-                                    filterRecords()
-                                    expanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("收入") }, // 使用 Composable 函數來顯示文字
-                                onClick = {
-                                    selectedType = "收入"
-                                    selectedChart = "收入"
-                                    Type = "income"
-                                    filterRecords()
-                                    expanded = false
-                                })
-                        }
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
+    Box()
+    {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .background(Color(0xFFE4DFCB))
                 .padding(16.dp),
         ) {
+            Box {
+                Button(
+                    onClick = { expanded = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFA68A68),  // 设置按钮背景色
+                        contentColor = Color(0xFF000000)    // 设置按钮文字颜色
+                    )
+                ) {
+                    Text("${selectedType}分析")
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("支出") }, // 使用 Composable 函數來顯示文字
+                        onClick = {
+                            selectedType = "支出"
+                            selectedChart = "支出"
+                            Type = "expanse"
+                            filterRecords()
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("結餘") }, // 使用 Composable 函數來顯示文字
+                        onClick = {
+                            selectedType = "結餘"
+                            selectedChart = "結餘"
+                            Type = "balance"
+                            filterRecords()
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("收入") }, // 使用 Composable 函數來顯示文字
+                        onClick = {
+                            selectedType = "收入"
+                            selectedChart = "收入"
+                            Type = "income"
+                            filterRecords()
+                            expanded = false
+                        })
+                }
+            }
             // 顯示年月的 Row
             Row(
                 modifier = Modifier

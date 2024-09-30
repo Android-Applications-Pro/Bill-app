@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -177,34 +179,34 @@ fun HomeScreenPersonalTransactionItem(
     )
 }
 
-@Composable
-fun HomeScreenPersonalTransactionList(
-    transactions: List<PersonalTransaction>,
-    navController: NavController,
-    viewModel: MainViewModel,
-    currentPage: Int,
-    itemsPerPage: Int
-) {
-    val startIndex = (currentPage - 1) * itemsPerPage
-    val endIndex = minOf(startIndex + itemsPerPage, transactions.size)
-    val currentTransactions = transactions.subList(startIndex, endIndex)
 
-    LazyColumn {
-        items(currentTransactions) { transaction ->
-            HomeScreenPersonalTransactionItem(
-                transaction = transaction,
-                onItemClick = {
-                    navController.navigate("editTransaction/${transaction.transactionId}")
-                },
-                onDelete = {
-                    viewModel.deleteTransaction(transaction.transactionId, transaction.type, transaction.amount)
-                },
-                onEdit = {
-                    navController.navigate("editTransaction/${transaction.transactionId}")
-                }
-            )
-        }
-    }
-}
-
-
+//@Composable
+//fun HomeScreenPersonalTransactionList(
+//    transactions: List<PersonalTransaction>,
+//    navController: NavController,
+//    viewModel: MainViewModel,
+//    currentPage: Int,
+//    itemsPerPage: Int
+//) {
+//    val startIndex = (currentPage - 1) * itemsPerPage
+//    val endIndex = minOf(startIndex + itemsPerPage, transactions.size)
+//    val currentTransactions = transactions.subList(startIndex, endIndex)
+//
+//    LazyColumn {
+//        items(currentTransactions) { transaction ->
+//            HomeScreenPersonalTransactionItem(
+//                transaction = transaction,
+//                onItemClick = {
+//                    navController.navigate("editTransaction/${transaction.transactionId}")
+//                },
+//                onDelete = {
+//                    viewModel.deleteTransaction(transaction.transactionId, transaction.type, transaction.amount)
+//                },
+//                onEdit = {
+//                    navController.navigate("editTransaction/${transaction.transactionId}")
+//                }
+//            )
+//        }
+//    }
+//}
+//

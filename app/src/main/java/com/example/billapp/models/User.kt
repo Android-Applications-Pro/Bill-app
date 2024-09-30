@@ -15,5 +15,6 @@ data class User(
     var groupsID: MutableList<String> = mutableListOf(),
     var experience: Int = 0,
     var trustLevel: Int = 100,
-    val fcmToken: String = ""
+    val fcmToken: String = "",
+    val budget: Int = 0,
 ) : Parcelable
