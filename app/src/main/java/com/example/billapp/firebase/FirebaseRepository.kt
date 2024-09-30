@@ -84,6 +84,15 @@ object FirebaseRepository {
             }
     }
 
+    fun updateUserBudget(budget: Int) {
+        val currentUser = getAuthInstance().currentUser
+        if (currentUser != null) {
+            getFirestoreInstance().collection(Constants.USERS)
+                .document(currentUser.uid)
+                .update("budget", budget)
+        }
+    }
+
     fun updateUserFCMToken(userId: String) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {

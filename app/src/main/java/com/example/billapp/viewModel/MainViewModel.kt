@@ -17,6 +17,7 @@ import com.example.billapp.utils.Constants
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -142,6 +143,14 @@ class MainViewModel : ViewModel() {
         return user.value?.trustLevel ?: 0
     }
 
+    fun getUserBudget(): Int {
+        return user.value?.budget ?: 0
+    }
+
+    fun updateUserBudget(budget: Int) {
+        FirebaseRepository.updateUserBudget(budget)
+    }
+
     private fun checkCurrentUser() {
         viewModelScope.launch {
             val currentUser = FirebaseAuth.getInstance().currentUser
@@ -170,11 +179,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun logOut() {
-        FirebaseRepository.signOut()
-        clearData()
-        _authState.value = AuthState.Initial
-        _isUserLoggedIn.value = false
+    fun logOut(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            clearData()
+            FirebaseRepository.signOut()
+            _authState.value = AuthState.Initial
+            _isUserLoggedIn.value = false
+            onComplete()
+        }
     }
 
     fun signIn(email: String, password: String) {
@@ -215,33 +227,32 @@ class MainViewModel : ViewModel() {
 
 
     fun clearData() {
-        _groupCreationStatus.value = GroupCreationStatus.IDLE
-        _groupIdDebtRelations.value = emptyMap()
-        currentGroup.value = null
-        _user.value = null
-        _userTransactions.value = emptyList()
-        _groupTransactions.value = emptyList()
-        _debtRelations.value = emptyList()
-        _isLoading.value = false
-        _error.value = null
-        _dividers.value = emptyList()
-        _payers.value = emptyList()
-        _transactionType.value = "支出"
-        _amount.value = 0.0
-        _note.value = ""
-        _date.value = Timestamp.now()
-        _category.value = ""
-        _name.value = ""
-        _shareMethod.value = "均分"
-        _groupMembers.value = emptyList()
-        _transaction.value = null
-        _updatetime.value = Timestamp.now()
-        _userGroups.value = emptyList()
-        _userPercentages.value = emptyMap()
-        _userAdjustments.value = emptyMap()
-        _userExactAmounts.value = emptyMap()
-        _userShares.value = emptyMap()
-        _groupName.value = ""
+//        _groupCreationStatus.value = GroupCreationStatus.IDLE
+//        _groupIdDebtRelations.value = emptyMap()
+//        currentGroup.value = null
+//        _userTransactions.value = emptyList()
+//        _groupTransactions.value = emptyList()
+//        _debtRelations.value = emptyList()
+//        _isLoading.value = false
+//        _error.value = null
+//        _dividers.value = emptyList()
+//        _payers.value = emptyList()
+//        _transactionType.value = "支出"
+//        _amount.value = 0.0
+//        _note.value = ""
+//        _date.value = Timestamp.now()
+//        _category.value = ""
+//        _name.value = ""
+//        _shareMethod.value = "均分"
+//        _groupMembers.value = emptyList()
+//        _transaction.value = null
+//        _updatetime.value = Timestamp.now()
+//        _userGroups.value = emptyList()
+//        _userPercentages.value = emptyMap()
+//        _userAdjustments.value = emptyMap()
+//        _userExactAmounts.value = emptyMap()
+//        _userShares.value = emptyMap()
+//        _groupName.value = ""
     }
 
     fun reloadUserData() {
@@ -254,6 +265,36 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+    // 負的代表自己欠錢，正的代表別人欠錢
+    fun calculateTotalDept(groupId: String): Double {
+        val userId = getCurrentUserID()
+        var totalDebt = 0.0
+
+        viewModelScope.launch {
+
+            val groupIdDeptRelations = FirebaseRepository.getGroupDeptRelations(groupId)
+            // Flatten the lists of DebtRelation into a single list
+            val allDebtRelations = groupIdDeptRelations.values.flatten()
+
+            // Iterate over each DebtRelation and calculate the debt
+            allDebtRelations.forEach { debtRelation ->
+                // 如果是user欠別人的錢，將金額減去
+                if (debtRelation.from == userId) {
+                    totalDebt -= debtRelation.amount
+                }
+                // 如果是別人欠user的錢，將金額加上
+                if (debtRelation.to == userId) {
+                    totalDebt += debtRelation.amount
+                }
+            }
+        }
+
+        return totalDebt
+    }
+
+
+
 
     fun updateUserProfile(updatedUser: User) {
         viewModelScope.launch {

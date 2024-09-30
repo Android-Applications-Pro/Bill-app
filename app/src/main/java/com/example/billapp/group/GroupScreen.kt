@@ -74,69 +74,70 @@ fun GroupScreen(
     val groups by viewModel.userGroups.collectAsState()
 
     // 使用 Box 設置整頁背景顏色
-        Scaffold(
-            topBar = {
-                    TopAppBar(
-                        modifier = Modifier.height(120.dp),
-                        colors = topAppBarColors(
-                            containerColor = Color(0xFFE4DFCB),
-                            titleContentColor = Color(0xFF000000),
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                modifier = Modifier.height(120.dp),
+                colors = topAppBarColors(
+                    containerColor = Color(0xFFE4DFCB),
+                    titleContentColor = Color(0xFF000000),
+                ),
+                title =  {
+                    Button(
+                        onClick = { navController.navigate("CreateGroupScreen") },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
                         ),
-                        title =  {
-                            Button(
-                                onClick = { navController.navigate("CreateGroupScreen") },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 30.dp, end = 16.dp, bottom = 30.dp)
-                            ) {
-                                Text(
-                                    text = "新增群組",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        },
-                        actions = {
-                            Button(
-                                onClick = { navController.navigate("Join_Group") },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 30.dp, end = 16.dp, bottom = 30.dp)
-                            ) {
-                                Text(
-                                    text = "加入群組",  // Join Group
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    )
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(innerPadding)
-                    .padding(0.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Group list
-                GroupList(
-                    groupItems = groups,
-                    onGroupClick = { groupId -> navController.navigate("groupDetail/$groupId") },
-                    navController
-                )
-            }
+                        modifier = Modifier
+                            .padding(top = 30.dp, end = 16.dp, bottom = 30.dp)
+                    ) {
+                        Text(
+                            text = "新增群組",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    Button(
+                        onClick = { navController.navigate("Join_Group") },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD4634E)  // Use containerColor instead of backgroundColor
+                        ),
+                        modifier = Modifier
+                            .padding(top = 30.dp, end = 16.dp, bottom = 30.dp)
+                    ) {
+                        Text(
+                            text = "加入群組",  // Join Group
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+                .padding(0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Group list
+            GroupList(
+                viewModel = viewModel,
+                groupItems = groups,
+                onGroupClick = { groupId -> navController.navigate("groupDetail/$groupId") },
+                navController
+            )
         }
     }
+}
 
 
 

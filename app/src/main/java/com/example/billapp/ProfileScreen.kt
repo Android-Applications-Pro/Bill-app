@@ -1,37 +1,23 @@
 package com.example.billapp
 
 import AvatarScreen
-import android.Manifest
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 
@@ -46,7 +32,7 @@ fun ProfileScreen(
     val user by viewModel.user.collectAsState()
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var mobile by remember { mutableStateOf("") }
+    var budget by remember { mutableStateOf(viewModel.getUserBudget().toString()) } // Add budget state
     var isEditing by remember { mutableStateOf(false) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
@@ -56,6 +42,7 @@ fun ProfileScreen(
         user?.let {
             name = it.name
             email = it.email
+            budget = it.budget.toString() // Initialize budget from user data
         }
     }
 
@@ -117,12 +104,15 @@ fun ProfileScreen(
                         enabled = false
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    // Add the budget input field
                     OutlinedTextField(
-                        value = mobile,
-                        onValueChange = { mobile = it },
-                        label = { Text("Mobile") },
+                        value = budget,
+                        onValueChange = { budget = it },
+                        label = { Text("Budget") },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = isEditing
+                        enabled = isEditing,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Ensure numeric input
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -134,9 +124,13 @@ fun ProfileScreen(
                                     val updatedUser = it.copy(
                                         name = name,
                                         email = email,
+                                        budget = budget.toIntOrNull() ?: 0 // Convert budget to int
                                     )
                                     viewModel.updateUserProfile(updatedUser)
                                     imageUri?.let { it1 -> avatarViewModel.uploadAvatar(it1) }
+
+                                    // Update budget in Firestore
+                                    viewModel.updateUserBudget(updatedUser.budget)
                                 }
                             }
                             isEditing = !isEditing
