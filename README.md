@@ -1,8 +1,1 @@
-
-122
-yeeeeeeeees
-1222
-=======
-Welcome to Android World!!
-
-
+# 20241002 innoverse 初試version 
