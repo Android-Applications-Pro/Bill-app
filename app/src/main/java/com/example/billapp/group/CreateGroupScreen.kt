@@ -1,6 +1,7 @@
 package com.example.billapp.group
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -22,6 +24,8 @@ import androidx.navigation.NavController
 import com.example.billapp.R
 import com.example.billapp.viewModel.MainViewModel
 import com.example.billapp.viewModel.GroupCreationStatus
+import com.example.billapp.ui.theme.MainBackgroundColor
+import com.example.billapp.ui.theme.Brown5
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,20 +42,26 @@ fun CreateGroup(
     val groupCreationStatus by viewModel.groupCreationStatus.collectAsState()
 
     Scaffold(
+        modifier = Modifier
+            .background(color = MainBackgroundColor),
         topBar = {
             TopAppBar(
                 title = { Text("創建群組", style = MaterialTheme.typography.headlineMedium) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { navController.navigateUp()}) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Brown5 // 設定背景顏色為 Brown5
+                )
             )
         }
     ) { contentPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(color = MainBackgroundColor)
                 .padding(contentPadding)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -69,7 +79,7 @@ fun CreateGroup(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                        .border(2.dp, Brown5, CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -90,6 +100,9 @@ fun CreateGroup(
                     viewModel.createGroupWithImageId(groupName, selectedImageId)
                     viewModel.updateUserExperience(userId,10)
                 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Brown5  // Use containerColor instead of backgroundColor
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Create Group")
