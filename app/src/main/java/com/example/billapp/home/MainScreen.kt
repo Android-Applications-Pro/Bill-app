@@ -48,7 +48,6 @@ import coil.compose.AsyncImage
 import com.example.billapp.Achievement.AchievementsScreen
 import com.example.billapp.Achievement.DetailedAchievementsScreen
 import com.example.billapp.Achievement.DetailedBadgesScreen
-import com.example.billapp.LineTokenUpdateScreen
 import com.example.billapp.ProfileScreen
 import com.example.billapp.QRCodeScannerScreen
 import com.example.billapp.R
@@ -68,6 +67,7 @@ import com.example.billapp.personal.EditTransactionDetailScreen
 import com.example.billapp.personal.PersonalUIScreen
 import com.example.billapp.setting.AboutScreen
 import com.example.billapp.setting.ContactUsScreen
+import com.example.billapp.setting.LineTokenUpdateScreen
 import com.example.billapp.sign.IntroScreen
 import com.example.billapp.sign.SignInScreen
 import com.example.billapp.sign.SignUpScreen

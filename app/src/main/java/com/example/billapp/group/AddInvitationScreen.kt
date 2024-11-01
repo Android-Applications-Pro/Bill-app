@@ -2,6 +2,7 @@ package com.example.billapp.group
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -17,11 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.billapp.R
+import com.example.billapp.ui.theme.theme.BottomBackgroundColor
 import com.example.billapp.ui.theme.theme.Brown6
 import com.example.billapp.ui.theme.theme.ButtonRedColor
 import com.example.billapp.ui.theme.theme.ItemAddMainColor
 import com.example.billapp.ui.theme.theme.MainBackgroundColor
 import com.example.billapp.ui.theme.theme.MainCardRedColor
+import com.example.billapp.ui.theme.theme.Orange1
+import com.example.billapp.ui.theme.theme.Orange2
 import com.example.billapp.ui.theme.theme.PrimaryFontColor
 import com.example.billapp.viewModel.MainViewModel
 
@@ -93,7 +97,7 @@ fun AddInvitationScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(MainCardRedColor)
+                colors = TopAppBarDefaults.topAppBarColors(Orange1)
             )
         }
     ) { innerPadding ->
@@ -114,7 +118,7 @@ fun AddInvitationScreen(
                 TextField(
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = MainBackgroundColor,
-                        focusedIndicatorColor = Brown6,
+                        focusedIndicatorColor = Orange2,
                         unfocusedIndicatorColor = ItemAddMainColor,
                         errorIndicatorColor = MaterialTheme.colorScheme.error,
                     ),
@@ -148,7 +152,7 @@ fun AddInvitationScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ButtonRedColor,
+                        containerColor = Orange1,
                         contentColor = Color.White
                     ),
                     enabled = groupLink.isNotBlank()
@@ -166,16 +170,20 @@ fun AddInvitationScreen(
                 viewModel.resetGroupStates()
             },
             confirmButton = {
-                TextButton(onClick = {
+                TextButton(
+                    onClick = {
                     showDialog = false
                     viewModel.resetGroupStates()
-                }) {
-                    Text("確定", color = PrimaryFontColor)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text("確定", color = Color.Black)
                 }
             },
-            title = { Text("提示", color = PrimaryFontColor) },
-            text = { Text(dialogMessage, color = PrimaryFontColor) },
-            containerColor = MainBackgroundColor
+            title = { Text("提示", color = Color.White) },
+            text = { Text(dialogMessage, color = Color.White) },
+            containerColor = BottomBackgroundColor
         )
     }
 }

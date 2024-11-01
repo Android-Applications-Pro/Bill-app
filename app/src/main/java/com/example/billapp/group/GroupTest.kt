@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,6 +60,9 @@ import com.example.billapp.home.CustomKeyboard
 import com.example.billapp.R
 import com.example.billapp.home.StylishTextField
 import com.example.billapp.home.evaluateExpression
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
+import com.example.billapp.ui.theme.theme.MainBackgroundColor
+import com.example.billapp.ui.theme.theme.Orange1
 import com.example.billapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -119,14 +123,15 @@ fun GroupTest(
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(Orange1)
             )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFD9C9BA))
+                .background(MainBackgroundColor)
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -324,7 +329,7 @@ fun GroupTest(
                     .fillMaxWidth()
                     .padding(8.dp)
                     .border(2.dp, colorResource(id = R.color.colorAccent), RoundedCornerShape(8.dp)) // 使用 colorResource 取得顏色
-                    .background(colorResource(id = R.color.colorLight)) // 背景顏色
+                    .background(BoxBackgroundColor) // 背景顏色
                     .clickable {
                         if (amountInput.isNotBlank() && dividers.isNotEmpty() && payers.isNotEmpty()) {
                             showCustomBottomSheet = true
@@ -357,7 +362,7 @@ fun GroupTest(
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF7A5B3C) // 更深的顏色
+                    containerColor = Orange1// 更深的顏色
                 ),
                 modifier = Modifier
                     .align(Alignment.End) // 右對齊

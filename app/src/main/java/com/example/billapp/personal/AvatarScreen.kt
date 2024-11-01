@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -16,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -23,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.billapp.R
+import com.example.billapp.lightBrown
+import com.example.billapp.ui.theme.theme.BottomBackgroundColor
 import com.example.billapp.viewModel.AvatarViewModel
 import kotlinx.coroutines.launch
 
@@ -45,118 +49,113 @@ fun AvatarScreen(viewModel: AvatarViewModel) {
         viewModel.loadAvatar()
     }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    Scaffold { contentPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clickable {
-                        showBottomSheet = true
-                    }
-                    .align(Alignment.CenterHorizontally),
-                contentAlignment = Alignment.Center
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(100.dp)
+    Box(
+        modifier = Modifier.size(120.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Avatar Image
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(100.dp),
+                color = lightBrown
+            )
+        } else {
+            when {
+                avatarUrl == null -> {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_user_place_holder),
+                        contentDescription = "Default Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, lightBrown, CircleShape)
+                            .clickable { showBottomSheet = true }
                     )
-                } else {
-                    when {
-                        avatarUrl == null -> {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_user_place_holder),
-                                contentDescription = "Default Avatar",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            )
-                        }
-                        avatarUrl?.startsWith("android.resource://") == true -> {
-                            val resourceId = avatarUrl?.substringAfterLast("/")?.toIntOrNull() ?: R.drawable.ic_user_place_holder
-                            Image(
-                                painter = painterResource(id = resourceId),
-                                contentDescription = "Preset Avatar",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            )
-                        }
-                        else -> {
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(avatarUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "Avatar",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            )
-                        }
-                    }
                 }
-
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Avatar",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.BottomEnd)
-                        .clickable {
-                            showBottomSheet = true
-                        }
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(4.dp)
-                )
+                avatarUrl?.startsWith("android.resource://") == true -> {
+                    val resourceId = avatarUrl?.substringAfterLast("/")?.toIntOrNull()
+                        ?: R.drawable.ic_user_place_holder
+                    Image(
+                        painter = painterResource(id = resourceId),
+                        contentDescription = "Preset Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, lightBrown, CircleShape)
+                            .clickable { showBottomSheet = true }
+                    )
+                }
+                else -> {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(avatarUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, lightBrown, CircleShape)
+                            .clickable { showBottomSheet = true }
+                    )
+                }
             }
         }
 
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    scope.launch {
-                        sheetState.hide()
-                    }.invokeOnCompletion {
-                        showBottomSheet = false
-                    }
-                },
-                sheetState = sheetState
+        // Edit Icon
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = "Edit Avatar",
+            tint = Color.White,
+            modifier = Modifier
+                .size(24.dp)
+                .align(Alignment.BottomEnd)
+                .clickable { showBottomSheet = true }
+                .background(lightBrown, CircleShape)
+                .padding(4.dp)
+        )
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                scope.launch { sheetState.hide() }
+                    .invokeOnCompletion { showBottomSheet = false }
+            },
+            sheetState = sheetState,
+            containerColor = BottomBackgroundColor,
+            modifier = Modifier.fillMaxHeight(0.7f)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.6f)
+                Text(
+                    "選擇頭像",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                PresetAvatars(viewModel)
+
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }
+                            .invokeOnCompletion { showBottomSheet = false }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = lightBrown),
+                    shape = RoundedCornerShape(28.dp)
                 ) {
-                    PresetAvatars(viewModel)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = {
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                showBottomSheet = false
-                            }
-                        },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Text("Hide bottom sheet")
-                    }
+                    Text("取消")
                 }
             }
         }

@@ -38,12 +38,14 @@ import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
 import com.google.zxing.RGBLuminanceSource
 import android.widget.FrameLayout
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.billapp.ui.theme.theme.BottomBackgroundColor
 import com.example.billapp.ui.theme.theme.ButtonGrayColor
 import com.example.billapp.ui.theme.theme.ButtonRedColor
 import com.example.billapp.ui.theme.theme.MainBackgroundColor
+import com.example.billapp.ui.theme.theme.Orange1
 import com.example.billapp.ui.theme.theme.PrimaryFontColor
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -166,7 +168,7 @@ fun QRCodeScannerScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { galleryLauncher.launch("image/*") },
-                    colors = ButtonDefaults.buttonColors(containerColor = ButtonGrayColor),
+                    colors = ButtonDefaults.buttonColors(containerColor = Orange1),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("從相簿選擇照片", color = Color.White)
@@ -174,7 +176,7 @@ fun QRCodeScannerScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = ButtonRedColor),
+                    colors = ButtonDefaults.buttonColors(containerColor = ButtonGrayColor),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("返回", color = Color.White)
@@ -206,8 +208,12 @@ fun QRCodeScannerScreen(navController: NavController) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
             confirmButton = {
-                TextButton(onClick = { showErrorDialog = false }) {
-                    Text("確定", color = Color.White)
+                TextButton(
+                    onClick = { showErrorDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text("確定", color = Color.Black)
                 }
             },
             title = { Text("錯誤", color = Color.White) },

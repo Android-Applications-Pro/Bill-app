@@ -396,15 +396,15 @@ fun EditTransactionDetailScreen(
     if (showErrorDialog) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
-            title = { Text(text = "錯誤") },
-            text = { Text(text = errorMessage) },
+            title = { Text(text = "錯誤", color = Color.White) },
+            text = { Text(text = errorMessage, color = Color.White) },
             confirmButton = {
                 Button(
                     onClick = { showErrorDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     shape = RoundedCornerShape(50)
                 ) {
-                    Text("確定")
+                    Text("確定", color = Color.Black)
                 }
             },
             containerColor = BottomBackgroundColor

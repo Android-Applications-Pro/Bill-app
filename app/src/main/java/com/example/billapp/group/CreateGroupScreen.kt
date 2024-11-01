@@ -27,6 +27,7 @@ import com.example.billapp.viewModel.MainViewModel
 import com.example.billapp.viewModel.GroupCreationStatus
 import com.example.billapp.ui.theme.theme.MainBackgroundColor
 import com.example.billapp.ui.theme.theme.Brown5
+import com.example.billapp.ui.theme.theme.Orange1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +55,7 @@ fun CreateGroup(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Brown5
+                    containerColor = Orange1
                 )
             )
         }
@@ -80,7 +81,7 @@ fun CreateGroup(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .border(2.dp, Brown5, CircleShape),
+                        .border(2.dp, Orange1, CircleShape),
                     contentScale = ContentScale.Crop
                 )
                 Icon(
@@ -114,7 +115,7 @@ fun CreateGroup(
                     viewModel.updateUserExperience(userId,10)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Brown5
+                    containerColor = Orange1
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {

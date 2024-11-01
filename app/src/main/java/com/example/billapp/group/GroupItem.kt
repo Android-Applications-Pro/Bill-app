@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.billapp.R
 import com.example.billapp.data.models.Group
+import com.example.billapp.ui.theme.theme.BottomBackgroundColor
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
 import com.example.billapp.ui.theme.theme.MainBackgroundColor
 import com.example.billapp.ui.theme.theme.Purple40
 import com.example.billapp.viewModel.MainViewModel
@@ -76,7 +78,7 @@ fun GroupItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFBBB0A2))
+                .background(BoxBackgroundColor)
                 .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 4.dp),
 
             verticalAlignment = Alignment.CenterVertically
@@ -103,20 +105,14 @@ fun GroupItem(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-//                BasicText(
-//                    text = "created by : $createdBy",
-//                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-//                    modifier = Modifier.fillMaxWidth()
-//                )
             }
         }
 
-        //Spacer(modifier = Modifier.height(0.dp)) // 縮短距離，根據需要調整此值
 
         Row(
             modifier = Modifier
                 .fillMaxWidth() // 填滿整個寬度
-                .background(Color(0xFFBBB0A2))
+                .background(BoxBackgroundColor)
                 .padding(1.dp), // 外邊距
             horizontalArrangement = Arrangement.End // 內容向右對齊
         ) {
@@ -125,25 +121,11 @@ fun GroupItem(
                     .width(150.dp) // 固定寬度
                     .padding(4.dp) // 調整內邊距
                     .background(
-//                        color = when {
-//                            groupTotalDebt < 0 -> Color(0xF3FF8B8B) // 負數時為紅色
-//                            groupTotalDebt > 0 -> Green // 正數時為綠色
-//                            else -> Orange4 // 0 為淺黃色
-//                        },
-                        color = Color(0xFFF8DBBE),
+                        color = Color(0xFFF8E9D7),
                         shape = RoundedCornerShape(8.dp) // 圓角背景
                     ),
                 contentAlignment = Alignment.BottomStart
             ) {
-//                Text(
-//                    text = when {
-//                        groupTotalDebt < 0.0 -> "應付 : ${String.format("%.0f", -groupTotalDebt)}" // 負數時為紅色
-//                        groupTotalDebt > 0.0 -> "應收 : ${String.format("%.0f", groupTotalDebt)}" // 正數時為綠色
-//                        else -> "帳務已結清" // 0 為淺黃色
-//                    },
-//                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
-//                    modifier = Modifier.padding(8.dp) // 調整文字的內邊距
-//                )
                 val (debtText, debtColor) = when {
                     groupTotalDebt < 0.0 -> "應付 : ${String.format("%.0f", -groupTotalDebt)}" to Color.Red
                     groupTotalDebt > 0.0 -> "應收 : ${String.format("%.0f", groupTotalDebt)}" to Color(0xFF228B22)

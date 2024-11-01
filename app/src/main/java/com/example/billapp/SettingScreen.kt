@@ -33,7 +33,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.billapp.data.models.User
+import com.example.billapp.setting.LineTokenUpdateScreen
 import com.example.billapp.ui.theme.theme.BottomBackgroundColor
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
+import com.example.billapp.ui.theme.theme.MainBackgroundColor
 import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
@@ -70,7 +73,7 @@ fun SettingScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFB67B6C)
+                    containerColor = MainBackgroundColor
                 )
             )
         }
@@ -80,7 +83,7 @@ fun SettingScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
-                .background(Color(0xD2FFF3E6))
+                .background(MainBackgroundColor)
 
         ) {
             ProfileCard(viewModel,navController,avatarViewModel)
@@ -88,7 +91,7 @@ fun SettingScreen(
             NotificationSwitch()
             SettingsList(navController,context)
             Spacer(modifier = Modifier.weight(1f))
-
+//            LineTokenUpdateScreen(navController,viewModel)
             LogoutButton(viewModel, navController, onCloseDrawer)
         }
     }
@@ -117,7 +120,7 @@ fun ProfileCard(
                 shape = RoundedCornerShape(16.dp)
             ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xD2FFF3E6)
+            containerColor = BoxBackgroundColor
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp,
@@ -448,120 +451,3 @@ data class SettingsItem(
     val onClick: () -> Unit
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LineTokenUpdateScreen(
-    navController: NavController,
-    viewModel: MainViewModel
-) {
-    var lineToken by remember { mutableStateOf("") }
-    var showSuccessDialog by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-
-    val user = viewModel.user.collectAsState().value
-    val scope = rememberCoroutineScope()
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Line Token 更新",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFB67B6C)
-                )
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-                .background(Color(0xD2FFF3E6)),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedTextField(
-                value = lineToken,
-                onValueChange = { lineToken = it },
-                label = { Text("Line Notify Token") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = lightBrown,
-                    focusedLabelColor = lightBrown
-                ),
-                singleLine = true
-            )
-
-            Button(
-                onClick = {
-                    if (lineToken.isNotBlank() && user != null) {
-                        isLoading = true
-                        scope.launch {
-                            try {
-                                viewModel.updataLineToken(user.id, lineToken)
-                                showSuccessDialog = true
-                            } catch (e: Exception) {
-                                // Handle error
-                            } finally {
-                                isLoading = false
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = lightBrown
-                ),
-                enabled = lineToken.isNotBlank() && !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White
-                    )
-                } else {
-                    Text("更新 Token")
-                }
-            }
-
-            if (showSuccessDialog) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showSuccessDialog = false
-                        navController.navigateUp()
-                    },
-                    title = { Text("更新成功", color = Color.White) },
-                    text = { Text("Line Token 已成功更新", color = Color.White) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                            showSuccessDialog = false
-                            navController.navigateUp()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            shape = RoundedCornerShape(50)
-                        ) {
-                            Text("確定", color = Color.Black)
-                        }
-                    },
-                    containerColor = BottomBackgroundColor,
-                )
-            }
-        }
-    }
-}
