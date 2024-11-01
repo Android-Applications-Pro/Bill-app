@@ -1,5 +1,8 @@
 package com.example.billapp.dept_relation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -18,6 +21,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
+import com.example.billapp.ui.theme.theme.MainBackgroundColor
+import com.example.billapp.ui.theme.theme.Orange1
 import com.example.billapp.viewModel.AvatarViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,17 +58,25 @@ fun DebtRelationsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFB67B6C)
+                    containerColor = Orange1
                 )
             )
-        }
+        },
+        modifier = Modifier.background(BoxBackgroundColor)
     ) { innerPadding ->
-        DeptRelationList(
-            avatarViewModel = avatarViewModel,
-            viewModel = viewModel,
-            debtRelations = groupIdDeptRelations,
-            groupId = groupId,
-            modifier = Modifier.padding(innerPadding)
-        )
+        Box(
+            modifier = Modifier
+                .background(MainBackgroundColor) // 設置頁面的背景顏色
+                .padding(innerPadding)
+                .fillMaxSize() // 確保 Box 佔滿整個可用空間
+        ) {
+            DeptRelationList(
+                avatarViewModel = avatarViewModel,
+                viewModel = viewModel,
+                debtRelations = groupIdDeptRelations,
+                groupId = groupId,
+                modifier = Modifier
+            )
+        }
     }
 }

@@ -1,12 +1,18 @@
 package com.example.billapp.dept_relation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.billapp.data.models.DebtRelation
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
+import com.example.billapp.ui.theme.theme.MainBackgroundColor
 import com.example.billapp.viewModel.AvatarViewModel
 import com.example.billapp.viewModel.MainViewModel
 
@@ -27,10 +33,24 @@ fun DeptRelationList(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
+            .background(MainBackgroundColor)
     ) {
-        optimizedDeptRelations.forEach { (pair, amount) ->
-            // 只有當使用者是債務關係中的其中一方時才顯示
-            if (user!!.id == pair.first || user!!.id == pair.second) {
+        val filteredDeptRelations = optimizedDeptRelations.filter { (pair, _) ->
+            user!!.id == pair.first || user!!.id == pair.second
+        }
+
+        if (filteredDeptRelations.isEmpty()) {
+            item {
+                Text(
+                    text = "查無欠債關係",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                )
+            }
+        } else {
+            filteredDeptRelations.forEach { (pair, amount) ->
                 item {
                     var fromName by remember { mutableStateOf("") }
                     var toName by remember { mutableStateOf("") }

@@ -44,6 +44,7 @@ import coil.compose.AsyncImage
 import com.example.billapp.R
 import com.example.billapp.data.models.DebtRelation
 import com.example.billapp.ui.theme.theme.Black
+import com.example.billapp.ui.theme.theme.BoxBackgroundColor
 import com.example.billapp.ui.theme.theme.Brown5
 import com.example.billapp.viewModel.MainViewModel
 
@@ -71,7 +72,7 @@ fun GroupedDeptRelationItem(
             .clickable { expanded = !expanded },
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8D8))
+        colors = CardDefaults.cardColors(containerColor = BoxBackgroundColor)
     ) {
         Column {
             Row(
