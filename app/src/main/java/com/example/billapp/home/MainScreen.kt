@@ -112,18 +112,7 @@ fun MainScreen(
         R.drawable.setting_icon_spaces
     )
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                val onCloseDrawer: () -> Unit = {
-                    scope.launch {
-                        drawerState.close()
-                    }
-                }
-            }
-        }
-    ) {
+    Box{
         Scaffold(
             bottomBar = {
                 if (currentRoute != "intro" && currentRoute != "signin" && currentRoute != "signup" && currentRoute != "splash") { // 確認當前路由不是 IntroScreen
